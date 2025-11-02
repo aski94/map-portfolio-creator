@@ -1,0 +1,24 @@
+h1,
+h2,
+h3,
+p {
+  font-family: 'Inter', sans-serif;
+}
+
+input,
+button,
+textarea,
+select,
+label,
+input {
+  font-family: 'Inter', sans-serif;
+}
+
+button:hover {
+  cursor: pointer;
+}
+
+h1 {
+  font-weight: 800;
+  font-size: 1.25rem;
+}
