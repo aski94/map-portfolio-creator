@@ -25,6 +25,7 @@ const general = reactive({
   hSize: 28,
   tSize: 16,
   text: '#111111',
+  heading: '#000000',
   accent: '#4f46e5',
   bg: '#ffffff',
 })
