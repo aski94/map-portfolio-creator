@@ -6,15 +6,21 @@
     <nav>
       <button class="button-secondary">Settings</button>
       <button>Export</button>
-      <i class="user">
+      <i class="user" @click="showLogin = !showLogin">
         <User />
       </i>
     </nav>
   </header>
+
+  <Login v-if="showLogin" @close="showLogin = false" />
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { User } from 'lucide-vue-next'
+import Login from '@/components/Login.vue'
+
+const showLogin = ref(false)
 </script>
 
 <style scoped lang="scss">
@@ -72,9 +78,6 @@ button:hover {
   border: 1px solid rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.2);
   color: var(--color-text-secondary);
-  transition:
-    background 0.2s ease,
-    filter 0.2s ease;
 }
 
 .button-secondary:hover {

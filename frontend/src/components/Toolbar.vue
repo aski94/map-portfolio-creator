@@ -28,7 +28,14 @@
 </template>
 
 <script setup lang="ts">
-import { Settings2, SlidersHorizontal, Trash2, GripVertical, ListOrdered, SendToBack } from 'lucide-vue-next'
+import {
+  Settings2,
+  SlidersHorizontal,
+  Trash2,
+  GripVertical,
+  ListOrdered,
+  SendToBack,
+} from 'lucide-vue-next'
 </script>
 
 <style scoped lang="scss">
