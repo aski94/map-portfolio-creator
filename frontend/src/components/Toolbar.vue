@@ -1,6 +1,6 @@
 <template>
   <section class="toolbar">
-    <button>
+    <button class="button-active">
       <i class="icon">
         <Settings2 />
       </i>
@@ -14,6 +14,12 @@
     </button>
     <button>
       <i class="icon">
+        <SendToBack />
+      </i>
+      <span>Reorder</span>
+    </button>
+    <button>
+      <i class="icon">
         <Trash2 />
       </i>
       <span>Delete</span>
@@ -22,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { Settings2, SlidersHorizontal, Trash2 } from 'lucide-vue-next'
+import { Settings2, SlidersHorizontal, Trash2, GripVertical, ListOrdered, SendToBack } from 'lucide-vue-next'
 </script>
 
 <style scoped lang="scss">
@@ -43,7 +49,6 @@ button {
   border: var(--border-primary);
   padding: 0 1em;
   border-radius: var(--border-radius-primary);
-  box-shadow: var(--box-shadow-primary);
   transition:
     background 0.2s ease,
     filter 0.2s ease;
@@ -52,6 +57,12 @@ button {
 button:hover {
   background: #f7f8fb;
   filter: brightness(var(--hover-brightness));
+}
+
+.button-active {
+  background: #f7f8fb;
+  border-color: var(--color-primary);
+  font-weight: 600;
 }
 
 .icon {
