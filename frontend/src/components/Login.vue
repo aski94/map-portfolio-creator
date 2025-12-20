@@ -121,8 +121,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Eye, EyeOff } from 'lucide-vue-next'
+import { useAuth } from '@/auth/auth'
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'logged-in'])
+const { setToken } = useAuth()
 
 const mode = ref<'login' | 'signup'>('login')
 const step = ref<'form' | 'confirm'>('form')
@@ -187,13 +189,40 @@ async function submit() {
       step.value = 'confirm'
       password.value = ''
       confirmPassword.value = ''
+      return
     } catch {
       errorMessage.value = 'Network error. Is the backend running?'
+      return
     } finally {
       loading.value = false
     }
-  } else {
+  }
+
+  loading.value = true
+  try {
+    const res = await fetch('http://localhost:3000/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.value,
+        password: password.value
+      })
+    })
+
+    const data = await res.json().catch(() => ({}))
+
+    if (!res.ok || !data.ok) {
+      errorMessage.value = data.error || 'Login failed'
+      return
+    }
+
+    setToken(data.token)
+    emit('logged-in')
     close()
+  } catch {
+    errorMessage.value = 'Network error. Is the backend running?'
+  } finally {
+    loading.value = false
   }
 }
 </script>
