@@ -3,7 +3,9 @@ import express from "express";
 import cors from "cors";
 import { Container } from "typedi";
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 import { EmailService } from "./services/email/EmailService";
+import { db } from "./databases/db";
 
 const app = express();
 
@@ -27,6 +29,25 @@ app.post("/auth/signup", async (req, res) => {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
+  const existing = await db.query(
+    `SELECT "user_id" FROM "user" WHERE "email" = $1`,
+    [email],
+  );
+
+  if (existing.rowCount && existing.rowCount > 0) {
+    return res.status(409).json({ error: "Email already registered" });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  await db.query(
+    `
+    INSERT INTO "user" ("email", "first_name", "last_name", "password_hash", "is_verified")
+    VALUES ($1, $2, $3, $4, FALSE)
+    `,
+    [email, firstName, lastName, passwordHash],
+  );
+
   const token = crypto.randomBytes(32).toString("hex");
 
   const baseUrl = process.env.APP_BASE_URL || "http://localhost:5173";
@@ -36,7 +57,7 @@ app.post("/auth/signup", async (req, res) => {
 
   await emailService.sendConfirmationEmail(
     email,
-    `${firstName}`,
+    `${firstName} ${lastName}`,
     confirmUrl,
   );
 
