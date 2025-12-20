@@ -6,21 +6,43 @@
     <nav>
       <button class="button-secondary">Settings</button>
       <button>Export</button>
-      <i class="user" @click="showLogin = !showLogin">
+      <i class="user" @click="onUserClick">
         <User />
       </i>
     </nav>
   </header>
 
-  <Login v-if="showLogin" @close="showLogin = false" />
+  <Login v-if="showLogin" @close="showLogin = false" @logged-in="onLoggedIn" />
+  <SignOut v-if="showSignOut" @close="showSignOut = false" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { User } from 'lucide-vue-next'
 import Login from '@/components/Login.vue'
+import SignOut from '@/components/SignOut.vue'
+import { useAuth } from '@/auth/auth'
+
+const { isLoggedIn } = useAuth()
 
 const showLogin = ref(false)
+const showSignOut = ref(false)
+
+function onUserClick() {
+  if (isLoggedIn()) {
+    showSignOut.value = true
+    showLogin.value = false
+    return
+  }
+
+  showLogin.value = true
+  showSignOut.value = false
+}
+
+function onLoggedIn() {
+  showLogin.value = false
+  showSignOut.value = false
+}
 </script>
 
 <style scoped lang="scss">
