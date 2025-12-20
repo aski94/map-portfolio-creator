@@ -17,3 +17,13 @@ CREATE TABLE "email_verification" (
 
 CREATE INDEX "idx_email_verification_user_id"
   ON "email_verification"("user_id");
+
+CREATE TABLE "portfolio" (
+  "portfolio_id" SERIAL PRIMARY KEY,
+  "user_id" INT NOT NULL UNIQUE
+    REFERENCES "user"("user_id") ON DELETE CASCADE,
+  "data" JSON NOT NULL DEFAULT '{}'
+);
+
+CREATE INDEX "idx_portfolio_user_id"
+  ON "portfolio"("user_id");

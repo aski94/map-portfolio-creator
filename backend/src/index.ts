@@ -79,6 +79,11 @@ app.post("/auth/signup", async (req, res) => {
 
   const userId = created.rows[0].user_id;
 
+  await db.query(
+    `INSERT INTO "portfolio" ("user_id", "data") VALUES ($1, $2)`,
+    [userId, JSON.stringify({})],
+  );
+
   const token = crypto.randomBytes(32).toString("hex");
 
   await db.query(
@@ -197,4 +202,39 @@ app.get("/protected", requireAuth, async (_, res) => {
   return res.json({ ok: true });
 });
 
+app.get("/portfolio/me", requireAuth, async (req, res) => {
+  const auth = (req as any).auth as { user_id: number };
+
+  const result = await db.query(
+    `SELECT "data" FROM "portfolio" WHERE "user_id" = $1`,
+    [auth.user_id],
+  );
+
+  if (!result.rowCount) {
+    return res.json({ ok: true, data: null });
+  }
+
+  return res.json({ ok: true, data: result.rows[0].data });
+});
+
+app.put("/portfolio/me", requireAuth, async (req, res) => {
+  const auth = (req as any).auth as { user_id: number };
+  const data = req.body;
+
+  if (!data || typeof data !== "object") {
+    return res.status(400).json({ ok: false, error: "Invalid data" });
+  }
+
+  await db.query(
+    `
+    INSERT INTO "portfolio" ("user_id", "data")
+    VALUES ($1, $2)
+    ON CONFLICT ("user_id")
+    DO UPDATE SET "data" = EXCLUDED."data"
+    `,
+    [auth.user_id, JSON.stringify(data)],
+  );
+
+  return res.json({ ok: true });
+});
 app.listen(3000);
