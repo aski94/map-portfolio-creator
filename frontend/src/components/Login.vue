@@ -127,9 +127,16 @@ function toggleMode() {
 async function submit() {
   errorMessage.value = ''
 
-  if (mode.value === 'signup' && password.value !== confirmPassword.value) {
-    errorMessage.value = 'Passwords do not match'
-    return
+  if (mode.value === 'signup') {
+    if (password.value.length < 7) {
+      errorMessage.value = 'Password must be at least 7 characters long'
+      return
+    }
+
+    if (password.value !== confirmPassword.value) {
+      errorMessage.value = 'Passwords do not match'
+      return
+    }
   }
 
   if (mode.value === 'signup') {
