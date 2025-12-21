@@ -9,47 +9,24 @@
         <form class="form" @submit.prevent="submit">
           <label v-if="mode === 'signup'" for="first-name">
             First name
-            <input
-              id="first-name"
-              type="text"
-              placeholder="Enter your first name…"
-              v-model="firstName"
-              required
-            />
+            <input id="first-name" type="text" placeholder="Enter your first name…" v-model="firstName" required />
           </label>
 
           <label v-if="mode === 'signup'" for="last-name">
             Last name
-            <input
-              id="last-name"
-              type="text"
-              placeholder="Enter your last name…"
-              v-model="lastName"
-              required
-            />
+            <input id="last-name" type="text" placeholder="Enter your last name…" v-model="lastName" required />
           </label>
 
           <label for="email">
             Email
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter your email…"
-              v-model="email"
-              required
-            />
+            <input id="email" type="email" placeholder="Enter your email…" v-model="email" required />
           </label>
 
           <label for="password">
             Password
             <div class="password-wrapper">
-              <input
-                id="password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="Enter your password…"
-                v-model="password"
-                required
-              />
+              <input id="password" :type="showPassword ? 'text' : 'password'" placeholder="Enter your password…"
+                v-model="password" required />
               <i class="eye" @click="showPassword = !showPassword">
                 <Eye v-if="!showPassword" />
                 <EyeOff v-else />
@@ -60,13 +37,8 @@
           <label v-if="mode === 'signup'" for="confirm-password">
             Confirm password
             <div class="password-wrapper">
-              <input
-                id="confirm-password"
-                :type="showConfirm ? 'text' : 'password'"
-                placeholder="Confirm your password…"
-                v-model="confirmPassword"
-                required
-              />
+              <input id="confirm-password" :type="showConfirm ? 'text' : 'password'"
+                placeholder="Confirm your password…" v-model="confirmPassword" required />
               <i class="eye" @click="showConfirm = !showConfirm">
                 <Eye v-if="!showConfirm" />
                 <EyeOff v-else />
@@ -231,7 +203,7 @@ async function submit() {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--color-background-primary);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -243,8 +215,9 @@ async function submit() {
   width: 22rem;
   background: var(--color-background-primary);
   padding: 2em;
+  border: var(--border-primary);
   border-radius: var(--border-radius-secondary);
-  box-shadow: var(--box-shadow-primary);
+  box-shadow: var(--box-shadow-secondary);
   position: relative;
   animation: fadeIn 0.2s ease-out;
 }
@@ -254,6 +227,7 @@ async function submit() {
     opacity: 0;
     transform: scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: scale(1);

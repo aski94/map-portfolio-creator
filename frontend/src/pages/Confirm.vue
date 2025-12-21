@@ -79,7 +79,7 @@ function goHome() {
   max-width: 100%;
   border: var(--border-primary);
   border-radius: var(--border-radius-secondary);
-  box-shadow: var(--box-shadow-primary);
+  box-shadow: var(--box-shadow-secondary);
   padding: 24px;
   text-align: center;
   background: var(--color-background-primary);

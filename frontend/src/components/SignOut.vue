@@ -50,6 +50,7 @@ function signOut() {
   width: 22rem;
   background: var(--color-background-primary);
   padding: 2em;
+  border: var(--border-primary);
   border-radius: var(--border-radius-secondary);
   box-shadow: var(--box-shadow-primary);
   position: relative;
