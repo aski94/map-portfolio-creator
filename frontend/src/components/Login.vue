@@ -78,14 +78,8 @@
           <p class="confirm-text">
             Please open your inbox and click the link to activate your account.
           </p>
-
-          <button class="submit" @click="close">
-            Got it
-          </button>
         </div>
       </template>
-
-      <button class="close" @click="close">×</button>
     </section>
   </div>
 </template>

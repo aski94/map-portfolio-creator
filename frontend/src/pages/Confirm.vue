@@ -16,7 +16,7 @@
       </p>
 
       <button class="btn" @click="goHome">
-        Go to homepage
+        Go to log in
       </button>
     </div>
   </div>
