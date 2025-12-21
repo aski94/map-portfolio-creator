@@ -1,5 +1,5 @@
 <template>
-    <LoginModal @logged-in="onLoggedIn" />
+  <LoginModal @logged-in="onLoggedIn" />
 </template>
 
 <script setup lang="ts">
@@ -13,5 +13,4 @@ function onLoggedIn() {
 }
 </script>
 
-<style scoped lang="scss">
-</style>
+<style scoped lang="scss"></style>
