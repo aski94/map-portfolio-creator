@@ -99,7 +99,7 @@ app.post("/auth/signup", async (req, res) => {
 
   const emailService = Container.get(EmailService);
 
-  await emailService.sendConfirmationEmail(email, `${firstName} ${lastName}`, confirmUrl);
+  await emailService.sendConfirmationEmail(email, firstName, confirmUrl);
 
   return res.json({ ok: true });
 });
