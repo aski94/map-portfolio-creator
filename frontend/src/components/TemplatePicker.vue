@@ -145,6 +145,7 @@ function select(variant: string) {
     border: var(--border-primary);
     border-radius: var(--border-radius-secondary);
     background: var(--color-background-primary);
+    overflow: hidden;
     cursor: pointer;
     transition: filter 0.12s ease, background 0.2s ease;
 }
