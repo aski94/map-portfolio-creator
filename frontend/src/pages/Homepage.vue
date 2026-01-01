@@ -12,7 +12,7 @@
     <Styling :general="general" @update:general="updateGeneral" />
   </section>
 
-  <TemplatePickerModal v-if="showTemplatePicker" :templateType="pickedTemplateType" @close="showTemplatePicker = false"
+  <TemplatePicker v-if="showTemplatePicker" :templateType="pickedTemplateType" @close="showTemplatePicker = false"
     @select="onTemplateVariantSelect" />
 </template>
 
@@ -23,7 +23,7 @@ import AddTemplate from '@/components/AddTemplate.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import Showcase from '@/components/Showcase.vue'
 import Styling from '@/components/Styling.vue'
-import TemplatePickerModal from '@/components/TemplatePicker.vue'
+import TemplatePicker from '@/components/TemplatePicker.vue'
 import { useAuth } from '@/auth/auth'
 
 const { token } = useAuth()
