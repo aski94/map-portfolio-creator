@@ -7,7 +7,7 @@
             </div>
 
             <section class="grid">
-                <button v-for="item in items" :key="item.variant" class="card" @click="select(item.variant)">
+                <section v-for="item in items" :key="item.variant" class="card" @click="select(item.variant)">
                     <div class="preview"></div>
 
                     <div class="bottom">
@@ -17,7 +17,7 @@
                             <component :is="item.icon" />
                         </i>
                     </div>
-                </button>
+                </section>
             </section>
         </section>
     </div>
