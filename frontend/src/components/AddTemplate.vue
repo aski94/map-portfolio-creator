@@ -2,8 +2,8 @@
   <aside>
     <h1 class="title">Add template</h1>
     <ul>
-      <li v-for="item in items" :key="item.name">
-        <button class="item">
+      <li v-for="item in items" :key="item.type">
+        <button class="item" @click="open(item.type)">
           <i class="icon">
             <component :is="item.icon" />
           </i>
@@ -17,14 +17,23 @@
 <script setup lang="ts">
 import { Type, Image, LayoutGrid, Grid2X2, Mail } from 'lucide-vue-next'
 
+const emit = defineEmits<{
+  (e: 'open', templateType: string): void
+}>()
+
 const items = [
-  { name: 'Text', icon: Type },
-  { name: 'Image', icon: Image },
-  { name: 'Projects', icon: LayoutGrid },
-  { name: 'Gallery', icon: Grid2X2 },
-  { name: 'Contact', icon: Mail },
+  { type: 'text', name: 'Text', icon: Type },
+  { type: 'image', name: 'Image', icon: Image },
+  { type: 'projects', name: 'Projects', icon: LayoutGrid },
+  { type: 'gallery', name: 'Gallery', icon: Grid2X2 },
+  { type: 'contact', name: 'Contact', icon: Mail },
 ]
+
+function open(templateType: string) {
+  emit('open', templateType)
+}
 </script>
+
 
 <style scoped lang="scss">
 aside {

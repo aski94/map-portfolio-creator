@@ -2,13 +2,18 @@
   <Header></Header>
 
   <section v-if="ready" class="layout">
-    <AddTemplate></AddTemplate>
+    <AddTemplate @open="openTemplatePicker" />
+
     <main>
       <Toolbar></Toolbar>
       <Showcase :general="general"></Showcase>
     </main>
+
     <Styling :general="general" @update:general="updateGeneral" />
   </section>
+
+  <TemplatePickerModal v-if="showTemplatePicker" :templateType="pickedTemplateType" @close="showTemplatePicker = false"
+    @select="onTemplateVariantSelect" />
 </template>
 
 <script setup lang="ts">
@@ -18,11 +23,15 @@ import AddTemplate from '@/components/AddTemplate.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import Showcase from '@/components/Showcase.vue'
 import Styling from '@/components/Styling.vue'
+import TemplatePickerModal from '@/components/TemplatePicker.vue'
 import { useAuth } from '@/auth/auth'
 
 const { token } = useAuth()
 
 const ready = ref(false)
+
+const showTemplatePicker = ref(false)
+const pickedTemplateType = ref('')
 
 const general = reactive({
   pad: 32,
@@ -35,6 +44,15 @@ const general = reactive({
   accent: '#4f46e5',
   bg: '#ffffff',
 })
+
+function openTemplatePicker(templateType: string) {
+  pickedTemplateType.value = templateType
+  showTemplatePicker.value = true
+}
+
+function onTemplateVariantSelect(variant: string) {
+  // console.log(pickedTemplateType.value, variant)
+}
 
 async function loadPortfolio() {
   const t = token()
