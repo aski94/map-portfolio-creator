@@ -1,14 +1,14 @@
 <template>
   <section class="showcase" :style="vars">
-    <slot>
-      <h1>Nadpis</h1>
-      <p>Toto je text</p>
-    </slot>
+    <template v-if="templates?.length">
+      <component v-for="t in templates" :key="t.id" :is="resolveVariant(t.variant)" v-bind="t.props" />
+    </template>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { textComponents } from '@/components/templates/text'
 
 const props = defineProps<{
   general: {
@@ -22,6 +22,7 @@ const props = defineProps<{
     accent: string
     bg: string
   }
+  templates?: Array<{ id: string; variant: string; props: Record<string, any> }>
 }>()
 
 const vars = computed(() => ({
@@ -34,6 +35,14 @@ const vars = computed(() => ({
   '--heading-color': props.general.heading,
   '--font-family-showcase': props.general.font,
 }))
+
+const variantMap: Record<string, any> = Object.fromEntries(
+  textComponents.map(t => [t.variant, t.component]),
+)
+
+function resolveVariant(variant: string): any {
+  return variantMap[variant]
+}
 </script>
 
 <style scoped lang="scss">

@@ -6,7 +6,7 @@
 
     <main>
       <Toolbar></Toolbar>
-      <Showcase :general="general"></Showcase>
+      <Showcase :general="general" :templates="templates"></Showcase>
     </main>
 
     <Styling :general="general" @update:general="updateGeneral" />
@@ -25,6 +25,7 @@ import Showcase from '@/components/Showcase.vue'
 import Styling from '@/components/Styling.vue'
 import TemplatePicker from '@/components/TemplatePicker.vue'
 import { useAuth } from '@/auth/auth'
+import { textComponents } from '@/components/templates/text'
 
 const { token } = useAuth()
 
@@ -32,6 +33,8 @@ const ready = ref(false)
 
 const showTemplatePicker = ref(false)
 const pickedTemplateType = ref('')
+
+const templates = ref<Array<{ id: string; variant: string; props: Record<string, any> }>>([])
 
 const general = reactive({
   pad: 32,
@@ -51,6 +54,14 @@ function openTemplatePicker(templateType: string) {
 }
 
 function onTemplateVariantSelect(variant: string) {
+  const def = textComponents.find(t => t.variant === variant)
+  if (!def) return
+
+  templates.value.push({
+    id: crypto.randomUUID(),
+    variant,
+    props: def.createDefaultProps(),
+  })
   // console.log(pickedTemplateType.value, variant)
 }
 
