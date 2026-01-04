@@ -1,24 +1,27 @@
 <template>
   <section class="toolbar">
-    <button class="button-active">
+    <button :class="{ 'button-active': mode === 'general' }" @click="setMode('general')">
       <i class="icon">
         <Settings2 />
       </i>
       <span>General style</span>
     </button>
-    <button>
+
+    <button :class="{ 'button-active': mode === 'style' }" @click="setMode('style')">
       <i class="icon">
         <SlidersHorizontal />
       </i>
       <span>Style</span>
     </button>
-    <button>
+
+    <button :class="{ 'button-active': mode === 'reorder' }" @click="setMode('reorder')">
       <i class="icon">
         <SendToBack />
       </i>
       <span>Reorder</span>
     </button>
-    <button>
+
+    <button :class="{ 'button-active': mode === 'delete' }" @click="setMode('delete')">
       <i class="icon">
         <Trash2 />
       </i>
@@ -28,14 +31,21 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Settings2,
-  SlidersHorizontal,
-  Trash2,
-  GripVertical,
-  ListOrdered,
-  SendToBack,
-} from 'lucide-vue-next'
+import { Settings2, SlidersHorizontal, Trash2, SendToBack } from 'lucide-vue-next'
+
+type Mode = 'general' | 'style' | 'reorder' | 'delete'
+
+defineProps<{
+  mode: Mode
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:mode', v: Mode): void
+}>()
+
+function setMode(v: Mode) {
+  emit('update:mode', v)
+}
 </script>
 
 <style scoped lang="scss">

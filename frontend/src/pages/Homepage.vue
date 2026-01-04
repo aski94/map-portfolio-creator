@@ -5,7 +5,7 @@
     <AddTemplate @open="openTemplatePicker" />
 
     <main>
-      <Toolbar></Toolbar>
+      <Toolbar :mode="mode" @update:mode="mode = $event"></Toolbar>
       <Showcase :general="general" :templates="templates"></Showcase>
     </main>
 
@@ -27,9 +27,13 @@ import TemplatePicker from '@/components/TemplatePicker.vue'
 import { useAuth } from '@/auth/auth'
 import { textComponents } from '@/components/templates/text'
 
+type Mode = 'general' | 'style' | 'reorder' | 'delete'
+
 const { token } = useAuth()
 
 const ready = ref(false)
+
+const mode = ref<Mode>('general')
 
 const showTemplatePicker = ref(false)
 const pickedTemplateType = ref('')
