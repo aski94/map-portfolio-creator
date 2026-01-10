@@ -3,7 +3,7 @@
     <h1 class="title">Add template</h1>
     <ul>
       <li v-for="item in items" :key="item.type">
-        <button class="item" @click="open(item.type)">
+        <button class="item" @click="onClick(item.type)">
           <i class="icon">
             <component :is="item.icon" />
           </i>
@@ -18,6 +18,7 @@
 import { Type, Image, LayoutGrid, Grid2X2, Mail } from 'lucide-vue-next'
 
 const emit = defineEmits<{
+  (e: 'add-text'): void
   (e: 'open', templateType: string): void
 }>()
 
@@ -29,8 +30,13 @@ const items = [
   { type: 'contact', name: 'Contact', icon: Mail },
 ]
 
-function open(templateType: string) {
-  emit('open', templateType)
+function onClick(type: string) {
+  if (type === 'text') {
+    emit('add-text')
+    return
+  }
+
+  emit('open', type)
 }
 </script>
 
