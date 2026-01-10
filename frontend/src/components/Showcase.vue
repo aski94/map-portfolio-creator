@@ -86,7 +86,7 @@ function getAlign(t: { props: Record<string, any> }): 'left' | 'center' | 'right
   font-family: var(--font-family-showcase);
 }
 
-.showcase :where(h1, h2, h3) {
+.showcase :where(h1, h2, h3, .heading) {
   font-size: var(--heading-size);
   color: var(--heading-color);
   font-family: var(--font-family-showcase);
