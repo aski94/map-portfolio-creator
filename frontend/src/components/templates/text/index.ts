@@ -1,4 +1,4 @@
-import TextBasic from './TextBasic.vue'
+import TextBasic from './Text.vue'
 
 export const textComponents = [
     {
