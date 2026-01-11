@@ -8,9 +8,14 @@
         'align-left': getAlign(t) === 'left',
         'align-center': getAlign(t) === 'center',
       }" :style="{ marginBottom: `${general.gap}px` }">
-        <button v-if="styleEnabled" class="edit" type="button" @click.stop="emit('edit', t.id)"
+        <button v-if="styleEnabled" class="action edit" type="button" @click.stop="emit('edit', t.id)"
           aria-label="Edit template">
           <Pencil />
+        </button>
+
+        <button v-if="deleteEnabled" class="action delete" type="button" @click.stop="emit('delete', t.id)"
+          aria-label="Delete template">
+          <Trash2 />
         </button>
 
         <component :is="resolveVariant(t.variant)" v-bind="t.props" />
@@ -22,7 +27,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { textComponents } from '@/components/templates/text'
-import { Pencil } from 'lucide-vue-next'
+import { Pencil, Trash2 } from 'lucide-vue-next'
 
 const props = defineProps<{
   general: {
@@ -38,11 +43,13 @@ const props = defineProps<{
   }
   templates?: Array<{ id: string; variant: string; props: Record<string, any> }>
   styleEnabled?: boolean
+  deleteEnabled?: boolean
   selectedId?: string
 }>()
 
 const emit = defineEmits<{
   (e: 'edit', id: string): void
+  (e: 'delete', id: string): void
 }>()
 
 const vars = computed(() => ({
@@ -102,7 +109,7 @@ function getAlign(t: { props: Record<string, any> }): 'left' | 'center' | 'right
   outline-offset: 15px;
 }
 
-.edit {
+.action {
   position: absolute;
   top: 0.5em;
   width: 1.75em;
@@ -116,17 +123,17 @@ function getAlign(t: { props: Record<string, any> }): 'left' | 'center' | 'right
   transition: opacity 0.15s ease;
 }
 
-.template:not(.align-right) .edit {
+.template:not(.align-right) .action {
   right: 0.5em;
   left: auto;
 }
 
-.template.align-right .edit {
+.template.align-right .action {
   left: 0.5em;
   right: auto;
 }
 
-.edit:hover {
+.action:hover {
   opacity: 1;
 }
 </style>

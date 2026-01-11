@@ -7,8 +7,8 @@
     <main>
       <Toolbar :mode="mode" @update:mode="mode = $event"></Toolbar>
 
-      <Showcase :general="general" :templates="templates" :styleEnabled="mode === 'style'" :selectedId="selectedId"
-        @edit="onEditTemplate" />
+      <Showcase :general="general" :templates="templates" :styleEnabled="mode === 'style'"
+        :deleteEnabled="mode === 'delete'" :selectedId="selectedId" @edit="onEditTemplate" @delete="onDeleteTemplate" />
     </main>
 
     <TemplateStyling v-if="mode === 'style' && selectedTemplate" v-model="selectedTemplateStyle" />
@@ -131,7 +131,7 @@ const selectedTemplateStyle = computed<TemplateStyle>({
 })
 
 watch(mode, (m) => {
-  if (m !== 'style') selectedId.value = ''
+  if (m !== 'style' && m !== 'delete') selectedId.value = ''
 })
 
 const general = reactive({
@@ -153,6 +153,11 @@ function openTemplatePicker(templateType: string) {
 
 function onEditTemplate(id: string) {
   selectedId.value = id
+}
+
+function onDeleteTemplate(id: string) {
+  templates.value = templates.value.filter((t) => t.id !== id)
+  if (selectedId.value === id) selectedId.value = ''
 }
 
 function normalizeCreatedTemplate(created: { id: string; variant: string; props: Record<string, any> }) {
