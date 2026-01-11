@@ -73,7 +73,6 @@ const defaultTemplateStyle: TemplateStyle = {
 const { token } = useAuth()
 
 const ready = ref(false)
-
 const mode = ref<Mode>('general')
 
 const showTemplatePicker = ref(false)
@@ -84,38 +83,15 @@ const selectedId = ref('')
 
 const selectedTemplate = computed(() => templates.value.find((t) => t.id === selectedId.value) ?? null)
 
-watch(mode, (m) => {
-  if (m !== 'style') selectedId.value = ''
-})
-
-const general = reactive({
-  pad: 32,
-  gap: 20,
-  font: 'Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
-  hSize: 28,
-  tSize: 16,
-  text: '#111111',
-  heading: '#000000',
-  accent: '#4f46e5',
-  bg: '#ffffff',
-})
-
 const selectedTemplateStyle = computed<TemplateStyle>({
   get() {
     const t = selectedTemplate.value
-    if (!t) {
-      return {
-        ...defaultTemplateStyle,
-        textColor: general.text,
-        headingColor: general.heading,
-        bgColor: 'transparent',
-      }
-    }
+    if (!t) return defaultTemplateStyle
 
     return {
       title: (t.props as any).title ?? defaultTemplateStyle.title,
       text: (t.props as any).text ?? defaultTemplateStyle.text,
-      align: (((t.props as any).style?.align ?? defaultTemplateStyle.align) as TemplateStyle['align']),
+      align: ((t.props as any).style?.align ?? defaultTemplateStyle.align) as TemplateStyle['align'],
       gapHeadingText: ((t.props as any).style?.gapHeadingText ?? defaultTemplateStyle.gapHeadingText) as number,
       padTop: ((t.props as any).style?.padTop ?? defaultTemplateStyle.padTop) as number,
       padRight: ((t.props as any).style?.padRight ?? defaultTemplateStyle.padRight) as number,
@@ -125,9 +101,9 @@ const selectedTemplateStyle = computed<TemplateStyle>({
       marRight: ((t.props as any).style?.marRight ?? defaultTemplateStyle.marRight) as number,
       marBottom: ((t.props as any).style?.marBottom ?? defaultTemplateStyle.marBottom) as number,
       marLeft: ((t.props as any).style?.marLeft ?? defaultTemplateStyle.marLeft) as number,
-      textColor: ((t.props as any).style?.textColor ?? general.text) as string,
-      headingColor: ((t.props as any).style?.headingColor ?? general.heading) as string,
-      bgColor: ((t.props as any).style?.bgColor ?? 'transparent') as string,
+      textColor: ((t.props as any).style?.textColor ?? defaultTemplateStyle.textColor) as string,
+      headingColor: ((t.props as any).style?.headingColor ?? defaultTemplateStyle.headingColor) as string,
+      bgColor: ((t.props as any).style?.bgColor ?? defaultTemplateStyle.bgColor) as string,
     }
   },
   set(v) {
@@ -154,6 +130,22 @@ const selectedTemplateStyle = computed<TemplateStyle>({
   },
 })
 
+watch(mode, (m) => {
+  if (m !== 'style') selectedId.value = ''
+})
+
+const general = reactive({
+  pad: 32,
+  gap: 20,
+  font: 'Inter, system-ui, sans-serif',
+  hSize: 28,
+  tSize: 16,
+  text: '#111111',
+  heading: '#000000',
+  accent: '#4f46e5',
+  bg: '#ffffff',
+})
+
 function openTemplatePicker(templateType: string) {
   pickedTemplateType.value = templateType
   showTemplatePicker.value = true
@@ -166,6 +158,21 @@ function onEditTemplate(id: string) {
 function normalizeCreatedTemplate(created: { id: string; variant: string; props: Record<string, any> }) {
   ; (created.props as any).title = (created.props as any).title ?? defaultTemplateStyle.title
     ; (created.props as any).text = (created.props as any).text ?? defaultTemplateStyle.text
+    ; (created.props as any).style = (created.props as any).style ?? {
+      align: defaultTemplateStyle.align,
+      gapHeadingText: defaultTemplateStyle.gapHeadingText,
+      padTop: defaultTemplateStyle.padTop,
+      padRight: defaultTemplateStyle.padRight,
+      padBottom: defaultTemplateStyle.padBottom,
+      padLeft: defaultTemplateStyle.padLeft,
+      marTop: defaultTemplateStyle.marTop,
+      marRight: defaultTemplateStyle.marRight,
+      marBottom: defaultTemplateStyle.marBottom,
+      marLeft: defaultTemplateStyle.marLeft,
+      textColor: defaultTemplateStyle.textColor,
+      headingColor: defaultTemplateStyle.headingColor,
+      bgColor: defaultTemplateStyle.bgColor,
+    }
   return created
 }
 
@@ -204,15 +211,14 @@ async function loadPortfolio() {
 
   try {
     const res = await fetch('http://localhost:3000/portfolio/me', {
-      headers: {
-        Authorization: `Bearer ${t}`,
-      },
+      headers: { Authorization: `Bearer ${t}` },
     })
 
-    const data = await res.json().catch(() => null)
-    if (data?.ok && data?.data?.general) {
-      Object.assign(general, data.data.general)
-    }
+    const json = await res.json().catch(() => null)
+    const data = json?.data
+
+    if (data?.general) Object.assign(general, data.general)
+    if (Array.isArray(data?.templates)) templates.value = data.templates
   } finally {
     ready.value = true
   }
@@ -230,21 +236,32 @@ async function savePortfolio() {
     },
     body: JSON.stringify({
       general,
+      templates: templates.value,
     }),
   })
 }
 
 let saveTimeout: number | null = null
 
-function updateGeneral(v: typeof general) {
-  Object.assign(general, v)
-
+function queueSave() {
   if (saveTimeout) window.clearTimeout(saveTimeout)
-
   saveTimeout = window.setTimeout(() => {
     savePortfolio()
   }, 400)
 }
+
+function updateGeneral(v: typeof general) {
+  Object.assign(general, v)
+  queueSave()
+}
+
+watch(
+  templates,
+  () => {
+    queueSave()
+  },
+  { deep: true },
+)
 
 onMounted(() => {
   loadPortfolio()
