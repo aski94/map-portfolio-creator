@@ -1,13 +1,25 @@
 <template>
   <section class="showcase" :style="vars">
     <template v-if="templates?.length">
-      <section v-for="t in templates" :key="t.id" class="template" :class="{
+      <section v-for="(t, i) in templates" :key="t.id" class="template" :class="{
         selected: styleEnabled && t.id === selectedId,
         'align-right': getAlign(t) === 'right',
         'align-justify': getAlign(t) === 'justify',
         'align-left': getAlign(t) === 'left',
         'align-center': getAlign(t) === 'center',
       }" :style="{ marginBottom: `${general.gap}px` }">
+        <section v-if="reorderEnabled" class="reorder">
+          <button class="action reorder up" type="button" aria-label="Move template up" :disabled="i === 0"
+            @click.stop="emit('move', t.id, -1)">
+            <ChevronUp />
+          </button>
+
+          <button class="action reorder down" type="button" aria-label="Move template down"
+            :disabled="i === templates.length - 1" @click.stop="emit('move', t.id, +1)">
+            <ChevronDown />
+          </button>
+        </section>
+
         <button v-if="styleEnabled" class="action edit" type="button" @click.stop="emit('edit', t.id)"
           aria-label="Edit template">
           <Pencil />
@@ -28,7 +40,9 @@
 import { computed } from 'vue'
 import { textComponents } from '@/components/templates/text'
 import { imageComponents } from '@/components/templates/image'
-import { Pencil, Trash2 } from 'lucide-vue-next'
+import { Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-vue-next'
+
+type TemplateItem = { id: string; variant: string; props: Record<string, any> }
 
 const props = defineProps<{
   general: {
@@ -42,15 +56,17 @@ const props = defineProps<{
     accent: string
     bg: string
   }
-  templates?: Array<{ id: string; variant: string; props: Record<string, any> }>
+  templates?: TemplateItem[]
   styleEnabled?: boolean
   deleteEnabled?: boolean
+  reorderEnabled?: boolean
   selectedId?: string
 }>()
 
 const emit = defineEmits<{
   (e: 'edit', id: string): void
   (e: 'delete', id: string): void
+  (e: 'move', id: string, dir: -1 | 1): void
 }>()
 
 const vars = computed(() => ({
@@ -65,7 +81,7 @@ const vars = computed(() => ({
 }))
 
 const variantMap: Record<string, any> = Object.fromEntries(
-  [...textComponents, ...imageComponents].map(t => [t.variant, t.component]),
+  [...textComponents, ...imageComponents].map((t) => [t.variant, t.component]),
 )
 
 function resolveVariant(variant: string): any {
@@ -138,5 +154,19 @@ function getAlign(t: { props: Record<string, any> }): 'left' | 'center' | 'right
 
 .action:hover {
   opacity: 1;
+}
+
+.action:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.action.reorder {
+  left: 0.5em;
+  right: auto;
+}
+
+.action.reorder.down {
+  top: calc(0.5em + 1.95em);
 }
 </style>

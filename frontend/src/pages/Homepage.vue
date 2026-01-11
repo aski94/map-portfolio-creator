@@ -8,7 +8,8 @@
       <Toolbar :mode="mode" @update:mode="mode = $event"></Toolbar>
 
       <Showcase :general="general" :templates="templates" :styleEnabled="mode === 'style'"
-        :deleteEnabled="mode === 'delete'" :selectedId="selectedId" @edit="onEditTemplate" @delete="onDeleteTemplate" />
+        :deleteEnabled="mode === 'delete'" :reorderEnabled="mode === 'reorder'" :selectedId="selectedId"
+        @edit="onEditTemplate" @delete="onDeleteTemplate" @move="onMoveTemplate" />
     </main>
 
     <TemplateStyling v-if="mode === 'style' && selectedTemplate && isTextVariant(selectedTemplate.variant)"
@@ -227,6 +228,21 @@ function onEditTemplate(id: string) {
 function onDeleteTemplate(id: string) {
   templates.value = templates.value.filter((t) => t.id !== id)
   if (selectedId.value === id) selectedId.value = ''
+}
+
+function onMoveTemplate(id: string, dir: -1 | 1) {
+  const from = templates.value.findIndex((t) => t.id === id)
+  if (from < 0) return
+
+  const to = from + dir
+  if (to < 0 || to >= templates.value.length) return
+
+  const list = templates.value.slice()
+  const moved = list.splice(from, 1)[0]
+  if (!moved) return
+
+  list.splice(to, 0, moved)
+  templates.value = list
 }
 
 function normalizeCreatedTemplate(created: { id: string; variant: string; props: Record<string, any> }) {
