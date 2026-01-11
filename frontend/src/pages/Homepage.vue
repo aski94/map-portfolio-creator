@@ -2,7 +2,7 @@
   <Header></Header>
 
   <section v-if="ready" class="layout">
-    <AddTemplate @add-text="addTextTemplate" @open="openTemplatePicker" />
+    <AddTemplate @add-text="addTextTemplate" @open="onAddTemplateClick" />
 
     <main>
       <Toolbar :mode="mode" @update:mode="mode = $event"></Toolbar>
@@ -11,7 +11,11 @@
         :deleteEnabled="mode === 'delete'" :selectedId="selectedId" @edit="onEditTemplate" @delete="onDeleteTemplate" />
     </main>
 
-    <TemplateStyling v-if="mode === 'style' && selectedTemplate" v-model="selectedTemplateStyle" />
+    <TemplateStyling v-if="mode === 'style' && selectedTemplate && isTextVariant(selectedTemplate.variant)"
+      v-model="selectedTemplateStyle" />
+
+    <ImageTemplateStyling v-else-if="mode === 'style' && selectedTemplate && isImageVariant(selectedTemplate.variant)"
+      v-model="selectedImageTemplateStyle" />
 
     <Styling v-else :general="general" @update:general="updateGeneral" />
   </section>
@@ -28,9 +32,12 @@ import Toolbar from '@/components/Toolbar.vue'
 import Showcase from '@/components/Showcase.vue'
 import Styling from '@/components/GeneralStyling.vue'
 import TemplateStyling from '@/components/TemplateStyling.vue'
+import ImageTemplateStyling from '@/components/ImageTemplateStyling.vue'
+import type { ImageTemplateStyle } from '@/components/ImageTemplateStyling.vue'
 import TemplatePicker from '@/components/TemplatePicker.vue'
 import { useAuth } from '@/auth/auth'
 import { textComponents } from '@/components/templates/text'
+import { imageComponents } from '@/components/templates/image'
 
 type Mode = 'general' | 'style' | 'reorder' | 'delete'
 
@@ -70,6 +77,18 @@ const defaultTemplateStyle: TemplateStyle = {
   bgColor: '#ffffff',
 }
 
+const defaultImageTemplateStyle: ImageTemplateStyle = {
+  src: '',
+  caption: '',
+  align: 'left',
+  widthPct: 25,
+  padTop: 0,
+  padRight: 0,
+  padBottom: 0,
+  padLeft: 0,
+  hasImage: false,
+}
+
 const { token } = useAuth()
 
 const ready = ref(false)
@@ -83,10 +102,21 @@ const selectedId = ref('')
 
 const selectedTemplate = computed(() => templates.value.find((t) => t.id === selectedId.value) ?? null)
 
+const textVariantSet = new Set(textComponents.map((t) => t.variant))
+const imageVariantSet = new Set(imageComponents.map((t) => t.variant))
+
+function isTextVariant(variant: string) {
+  return textVariantSet.has(variant)
+}
+
+function isImageVariant(variant: string) {
+  return imageVariantSet.has(variant)
+}
+
 const selectedTemplateStyle = computed<TemplateStyle>({
   get() {
     const t = selectedTemplate.value
-    if (!t) return defaultTemplateStyle
+    if (!t || !isTextVariant(t.variant)) return defaultTemplateStyle
 
     return {
       title: (t.props as any).title ?? defaultTemplateStyle.title,
@@ -108,7 +138,7 @@ const selectedTemplateStyle = computed<TemplateStyle>({
   },
   set(v) {
     const t = selectedTemplate.value
-    if (!t) return
+    if (!t || !isTextVariant(t.variant)) return
 
       ; (t.props as any).title = v.title
       ; (t.props as any).text = v.text
@@ -130,6 +160,40 @@ const selectedTemplateStyle = computed<TemplateStyle>({
   },
 })
 
+const selectedImageTemplateStyle = computed<ImageTemplateStyle>({
+  get() {
+    const t = selectedTemplate.value
+    if (!t || !isImageVariant(t.variant)) return defaultImageTemplateStyle
+
+    return {
+      src: (t.props as any).src ?? defaultImageTemplateStyle.src,
+      caption: (t.props as any).caption ?? defaultImageTemplateStyle.caption,
+      align: ((t.props as any).style?.align ?? defaultImageTemplateStyle.align) as ImageTemplateStyle['align'],
+      widthPct: ((t.props as any).style?.widthPct ?? defaultImageTemplateStyle.widthPct) as number,
+      padTop: ((t.props as any).style?.padTop ?? defaultImageTemplateStyle.padTop) as number,
+      padRight: ((t.props as any).style?.padRight ?? defaultImageTemplateStyle.padRight) as number,
+      padBottom: ((t.props as any).style?.padBottom ?? defaultImageTemplateStyle.padBottom) as number,
+      padLeft: ((t.props as any).style?.padLeft ?? defaultImageTemplateStyle.padLeft) as number,
+      hasImage: Boolean((t.props as any).src),
+    }
+  },
+  set(v) {
+    const t = selectedTemplate.value
+    if (!t || !isImageVariant(t.variant)) return
+
+      ; (t.props as any).src = v.src
+      ; (t.props as any).caption = v.caption
+      ; (t.props as any).style = {
+        align: v.align,
+        widthPct: v.widthPct,
+        padTop: v.padTop,
+        padRight: v.padRight,
+        padBottom: v.padBottom,
+        padLeft: v.padLeft,
+      }
+  },
+})
+
 watch(mode, (m) => {
   if (m !== 'style' && m !== 'delete') selectedId.value = ''
 })
@@ -146,7 +210,12 @@ const general = reactive({
   bg: '#ffffff',
 })
 
-function openTemplatePicker(templateType: string) {
+function onAddTemplateClick(templateType: string) {
+  if (templateType === 'image') {
+    addImageTemplate()
+    return
+  }
+
   pickedTemplateType.value = templateType
   showTemplatePicker.value = true
 }
@@ -161,23 +230,43 @@ function onDeleteTemplate(id: string) {
 }
 
 function normalizeCreatedTemplate(created: { id: string; variant: string; props: Record<string, any> }) {
-  ; (created.props as any).title = (created.props as any).title ?? defaultTemplateStyle.title
-    ; (created.props as any).text = (created.props as any).text ?? defaultTemplateStyle.text
-    ; (created.props as any).style = (created.props as any).style ?? {
-      align: defaultTemplateStyle.align,
-      gapHeadingText: defaultTemplateStyle.gapHeadingText,
-      padTop: defaultTemplateStyle.padTop,
-      padRight: defaultTemplateStyle.padRight,
-      padBottom: defaultTemplateStyle.padBottom,
-      padLeft: defaultTemplateStyle.padLeft,
-      marTop: defaultTemplateStyle.marTop,
-      marRight: defaultTemplateStyle.marRight,
-      marBottom: defaultTemplateStyle.marBottom,
-      marLeft: defaultTemplateStyle.marLeft,
-      textColor: defaultTemplateStyle.textColor,
-      headingColor: defaultTemplateStyle.headingColor,
-      bgColor: defaultTemplateStyle.bgColor,
-    }
+  if (isTextVariant(created.variant)) {
+    ; (created.props as any).title = (created.props as any).title ?? defaultTemplateStyle.title
+      ; (created.props as any).text = (created.props as any).text ?? defaultTemplateStyle.text
+      ; (created.props as any).style =
+        (created.props as any).style ??
+        {
+          align: defaultTemplateStyle.align,
+          gapHeadingText: defaultTemplateStyle.gapHeadingText,
+          padTop: defaultTemplateStyle.padTop,
+          padRight: defaultTemplateStyle.padRight,
+          padBottom: defaultTemplateStyle.padBottom,
+          padLeft: defaultTemplateStyle.padLeft,
+          marTop: defaultTemplateStyle.marTop,
+          marRight: defaultTemplateStyle.marRight,
+          marBottom: defaultTemplateStyle.marBottom,
+          marLeft: defaultTemplateStyle.marLeft,
+          textColor: defaultTemplateStyle.textColor,
+          headingColor: defaultTemplateStyle.headingColor,
+          bgColor: defaultTemplateStyle.bgColor,
+        }
+  }
+
+  if (isImageVariant(created.variant)) {
+    ; (created.props as any).src = (created.props as any).src ?? defaultImageTemplateStyle.src
+      ; (created.props as any).caption = (created.props as any).caption ?? defaultImageTemplateStyle.caption
+      ; (created.props as any).style =
+        (created.props as any).style ??
+        {
+          align: defaultImageTemplateStyle.align,
+          widthPct: defaultImageTemplateStyle.widthPct,
+          padTop: defaultImageTemplateStyle.padTop,
+          padRight: defaultImageTemplateStyle.padRight,
+          padBottom: defaultImageTemplateStyle.padBottom,
+          padLeft: defaultImageTemplateStyle.padLeft,
+        }
+  }
+
   return created
 }
 
@@ -185,26 +274,39 @@ function addTextTemplate() {
   const def = textComponents[0]
   if (!def) return
 
-  const created = normalizeCreatedTemplate({
-    id: crypto.randomUUID(),
-    variant: def.variant,
-    props: def.createDefaultProps(),
-  })
+  templates.value.push(
+    normalizeCreatedTemplate({
+      id: crypto.randomUUID(),
+      variant: def.variant,
+      props: def.createDefaultProps(),
+    }),
+  )
+}
 
-  templates.value.push(created)
+function addImageTemplate() {
+  const def = imageComponents[0]
+  if (!def) return
+
+  templates.value.push(
+    normalizeCreatedTemplate({
+      id: crypto.randomUUID(),
+      variant: def.variant,
+      props: def.createDefaultProps(),
+    }),
+  )
 }
 
 function onTemplateVariantSelect(variant: string) {
   const def = textComponents.find((t) => t.variant === variant)
   if (!def) return
 
-  const created = normalizeCreatedTemplate({
-    id: crypto.randomUUID(),
-    variant,
-    props: def.createDefaultProps(),
-  })
-
-  templates.value.push(created)
+  templates.value.push(
+    normalizeCreatedTemplate({
+      id: crypto.randomUUID(),
+      variant,
+      props: def.createDefaultProps(),
+    }),
+  )
 }
 
 async function loadPortfolio() {
@@ -239,10 +341,7 @@ async function savePortfolio() {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${t}`,
     },
-    body: JSON.stringify({
-      general,
-      templates: templates.value,
-    }),
+    body: JSON.stringify({ general, templates: templates.value }),
   })
 }
 

@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Type, Image, LayoutGrid, Grid2X2, Mail } from 'lucide-vue-next'
+import { Type, LayoutGrid, Grid2X2, Mail } from 'lucide-vue-next'
 
 const props = defineProps<{
     templateType: string
@@ -37,18 +37,6 @@ const emit = defineEmits<{
 }>()
 
 const variants: Record<string, Array<{ variant: string; name: string; icon: any }>> = {
-    text: [
-        { variant: 'text.basic', name: 'Basic text', icon: Type },
-        { variant: 'text.centered', name: 'Centered text', icon: Type },
-        { variant: 'text.split', name: 'Split text', icon: Type },
-        { variant: 'text.hero', name: 'Hero text', icon: Type },
-    ],
-    image: [
-        { variant: 'image.basic', name: 'Basic image', icon: Image },
-        { variant: 'image.full', name: 'Full width image', icon: Image },
-        { variant: 'image.with-text', name: 'Image with text', icon: Image },
-        { variant: 'image.gallery', name: 'Image gallery', icon: Image },
-    ],
     projects: [
         { variant: 'projects.grid', name: 'Projects grid', icon: LayoutGrid },
         { variant: 'projects.cards', name: 'Project cards', icon: LayoutGrid },

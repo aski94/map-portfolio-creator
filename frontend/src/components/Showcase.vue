@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { textComponents } from '@/components/templates/text'
+import { imageComponents } from '@/components/templates/image'
 import { Pencil, Trash2 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -63,7 +64,9 @@ const vars = computed(() => ({
   '--font-family-showcase': props.general.font,
 }))
 
-const variantMap: Record<string, any> = Object.fromEntries(textComponents.map(t => [t.variant, t.component]))
+const variantMap: Record<string, any> = Object.fromEntries(
+  [...textComponents, ...imageComponents].map(t => [t.variant, t.component]),
+)
 
 function resolveVariant(variant: string): any {
   return variantMap[variant]
