@@ -90,8 +90,8 @@ const alignClass = computed(() => {
 }
 
 .placeholder-text {
-    font-weight: 700;
     opacity: 0.7;
+    padding: 0 0.75em;
 }
 
 .caption {
