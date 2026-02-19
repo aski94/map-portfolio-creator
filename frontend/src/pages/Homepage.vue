@@ -12,11 +12,14 @@
         @edit="onEditTemplate" @delete="onDeleteTemplate" @move="onMoveTemplate" />
     </main>
 
-    <TemplateStyling v-if="mode === 'style' && selectedTemplate && isTextVariant(selectedTemplate.variant)"
+    <TextStyling v-if="mode === 'style' && selectedTemplate && isTextVariant(selectedTemplate.variant)"
       v-model="selectedTemplateStyle" />
 
     <ImageTemplateStyling v-else-if="mode === 'style' && selectedTemplate && isImageVariant(selectedTemplate.variant)"
       v-model="selectedImageTemplateStyle" />
+
+    <ProjectsStyling v-else-if="mode === 'style' && selectedTemplate && isProjectVariant(selectedTemplate.variant)"
+      v-model="selectedProjectsTemplateStyle" />
 
     <Styling v-else :general="general" @update:general="updateGeneral" />
   </section>
@@ -32,13 +35,16 @@ import AddTemplate from '@/components/AddTemplate.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import Showcase from '@/components/Showcase.vue'
 import Styling from '@/components/GeneralStyling.vue'
-import TemplateStyling from '@/components/TemplateStyling.vue'
+import TextStyling from '@/components/TextStyling.vue'
 import ImageTemplateStyling from '@/components/ImageTemplateStyling.vue'
 import type { ImageTemplateStyle } from '@/components/ImageTemplateStyling.vue'
+import ProjectsStyling from '@/components/ProjectsStyling.vue'
+import type { ProjectsTemplateStyle } from '@/components/ProjectsStyling.vue'
 import TemplatePicker from '@/components/TemplatePicker.vue'
 import { useAuth } from '@/auth/auth'
 import { textComponents } from '@/components/templates/text'
 import { imageComponents } from '@/components/templates/image'
+import { projectComponents } from '@/components/templates/projects'
 
 type Mode = 'general' | 'style' | 'reorder' | 'delete'
 
@@ -59,6 +65,8 @@ type TemplateStyle = {
   headingColor: string
   bgColor: string
 }
+
+type TemplateInstance = { id: string; variant: string; props: Record<string, any> }
 
 const defaultTemplateStyle: TemplateStyle = {
   title: 'Heading',
@@ -90,28 +98,59 @@ const defaultImageTemplateStyle: ImageTemplateStyle = {
   hasImage: false,
 }
 
+const defaultProjectsTemplateStyle: ProjectsTemplateStyle = {
+  heading: 'Projects',
+  layout: 'grid',
+  padTop: 0,
+  padRight: 0,
+  padBottom: 0,
+  padLeft: 0,
+  projects: [
+    {
+      id: crypto.randomUUID(),
+      title: 'Project title',
+      description: 'Short description...',
+      tags: ['Vue', 'TypeScript'],
+      imageSrc: '',
+      imageFit: 'cover',
+      imageHeight: 200,
+      imagePosX: 50,
+      imagePosY: 50,
+      github: '',
+      other: '',
+    },
+  ],
+}
+
 const { token } = useAuth()
 
-const ready = ref(false)
+const ready = ref<boolean>(false)
 const mode = ref<Mode>('general')
 
-const showTemplatePicker = ref(false)
-const pickedTemplateType = ref('')
+const showTemplatePicker = ref<boolean>(false)
+const pickedTemplateType = ref<string>('')
 
-const templates = ref<Array<{ id: string; variant: string; props: Record<string, any> }>>([])
-const selectedId = ref('')
+const templates = ref<TemplateInstance[]>([])
+const selectedId = ref<string>('')
 
-const selectedTemplate = computed(() => templates.value.find((t) => t.id === selectedId.value) ?? null)
+const selectedTemplate = computed<TemplateInstance | null>(
+  () => templates.value.find((t) => t.id === selectedId.value) ?? null,
+)
 
-const textVariantSet = new Set(textComponents.map((t) => t.variant))
-const imageVariantSet = new Set(imageComponents.map((t) => t.variant))
+const textVariantSet = new Set<string>(textComponents.map((t) => t.variant))
+const imageVariantSet = new Set<string>(imageComponents.map((t) => t.variant))
+const projectVariantSet = new Set<string>(projectComponents.map((t) => t.variant))
 
-function isTextVariant(variant: string) {
+function isTextVariant(variant: string): boolean {
   return textVariantSet.has(variant)
 }
 
-function isImageVariant(variant: string) {
+function isImageVariant(variant: string): boolean {
   return imageVariantSet.has(variant)
+}
+
+function isProjectVariant(variant: string): boolean {
+  return projectVariantSet.has(variant)
 }
 
 const selectedTemplateStyle = computed<TemplateStyle>({
@@ -195,6 +234,42 @@ const selectedImageTemplateStyle = computed<ImageTemplateStyle>({
   },
 })
 
+const selectedProjectsTemplateStyle = computed<ProjectsTemplateStyle>({
+  get() {
+    const t = selectedTemplate.value
+    if (!t || !isProjectVariant(t.variant)) return defaultProjectsTemplateStyle
+
+    const p = t.props as any
+    const st = p.style ?? {}
+
+    return {
+      heading: (p.heading ?? defaultProjectsTemplateStyle.heading) as string,
+      layout: (p.layout ?? defaultProjectsTemplateStyle.layout) as ProjectsTemplateStyle['layout'],
+      padTop: (st.padTop ?? defaultProjectsTemplateStyle.padTop) as number,
+      padRight: (st.padRight ?? defaultProjectsTemplateStyle.padRight) as number,
+      padBottom: (st.padBottom ?? defaultProjectsTemplateStyle.padBottom) as number,
+      padLeft: (st.padLeft ?? defaultProjectsTemplateStyle.padLeft) as number,
+      projects: (Array.isArray(p.projects) && p.projects.length
+        ? p.projects
+        : defaultProjectsTemplateStyle.projects) as ProjectsTemplateStyle['projects'],
+    }
+  },
+  set(v) {
+    const t = selectedTemplate.value
+    if (!t || !isProjectVariant(t.variant)) return
+
+      ; (t.props as any).heading = v.heading
+      ; (t.props as any).layout = v.layout
+      ; (t.props as any).projects = v.projects
+      ; (t.props as any).style = {
+        padTop: v.padTop,
+        padRight: v.padRight,
+        padBottom: v.padBottom,
+        padLeft: v.padLeft,
+      }
+  },
+})
+
 watch(mode, (m) => {
   if (m !== 'style' && m !== 'delete') selectedId.value = ''
 })
@@ -217,6 +292,11 @@ function onAddTemplateClick(templateType: string) {
     return
   }
 
+  if (templateType === 'projects') {
+    addProjectsTemplate()
+    return
+  }
+
   pickedTemplateType.value = templateType
   showTemplatePicker.value = true
 }
@@ -233,19 +313,16 @@ function onDeleteTemplate(id: string) {
 function onMoveTemplate(id: string, dir: -1 | 1) {
   const from = templates.value.findIndex((t) => t.id === id)
   if (from < 0) return
-
   const to = from + dir
   if (to < 0 || to >= templates.value.length) return
-
   const list = templates.value.slice()
   const moved = list.splice(from, 1)[0]
   if (!moved) return
-
   list.splice(to, 0, moved)
   templates.value = list
 }
 
-function normalizeCreatedTemplate(created: { id: string; variant: string; props: Record<string, any> }) {
+function normalizeCreatedTemplate(created: TemplateInstance): TemplateInstance {
   if (isTextVariant(created.variant)) {
     ; (created.props as any).title = (created.props as any).title ?? defaultTemplateStyle.title
       ; (created.props as any).text = (created.props as any).text ?? defaultTemplateStyle.text
@@ -283,13 +360,42 @@ function normalizeCreatedTemplate(created: { id: string; variant: string; props:
         }
   }
 
+  if (isProjectVariant(created.variant)) {
+    const p = created.props as any
+
+    p.heading = p.heading ?? defaultProjectsTemplateStyle.heading
+    p.layout = p.layout ?? defaultProjectsTemplateStyle.layout
+
+    if (!Array.isArray(p.projects) || !p.projects.length) {
+      p.projects = defaultProjectsTemplateStyle.projects
+    } else {
+      p.projects = p.projects.map((x: any) => ({
+        ...x,
+        imageFit: x.imageFit ?? 'cover',
+        imageHeight: x.imageHeight ?? 200,
+        imagePosX: x.imagePosX ?? 50,
+        imagePosY: x.imagePosY ?? 50,
+        other: x.other ?? x.demo ?? '',
+        demo: undefined,
+      }))
+    }
+
+    p.style =
+      p.style ??
+      {
+        padTop: defaultProjectsTemplateStyle.padTop,
+        padRight: defaultProjectsTemplateStyle.padRight,
+        padBottom: defaultProjectsTemplateStyle.padBottom,
+        padLeft: defaultProjectsTemplateStyle.padLeft,
+      }
+  }
+
   return created
 }
 
 function addTextTemplate() {
   const def = textComponents[0]
   if (!def) return
-
   templates.value.push(
     normalizeCreatedTemplate({
       id: crypto.randomUUID(),
@@ -301,6 +407,18 @@ function addTextTemplate() {
 
 function addImageTemplate() {
   const def = imageComponents[0]
+  if (!def) return
+  templates.value.push(
+    normalizeCreatedTemplate({
+      id: crypto.randomUUID(),
+      variant: def.variant,
+      props: def.createDefaultProps(),
+    }),
+  )
+}
+
+function addProjectsTemplate() {
+  const def = projectComponents[0]
   if (!def) return
 
   templates.value.push(

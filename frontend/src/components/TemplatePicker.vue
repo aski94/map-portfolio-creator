@@ -37,12 +37,6 @@ const emit = defineEmits<{
 }>()
 
 const variants: Record<string, Array<{ variant: string; name: string; icon: any }>> = {
-    projects: [
-        { variant: 'projects.grid', name: 'Projects grid', icon: LayoutGrid },
-        { variant: 'projects.cards', name: 'Project cards', icon: LayoutGrid },
-        { variant: 'projects.list', name: 'Project list', icon: LayoutGrid },
-        { variant: 'projects.featured', name: 'Featured project', icon: LayoutGrid },
-    ],
     gallery: [
         { variant: 'gallery.grid', name: 'Grid gallery', icon: Grid2X2 },
         { variant: 'gallery.masonry', name: 'Masonry gallery', icon: Grid2X2 },
