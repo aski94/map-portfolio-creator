@@ -24,11 +24,11 @@
     <GalleryStyling v-else-if="mode === 'style' && selectedTemplate && isGalleryVariant(selectedTemplate.variant)"
       v-model="selectedGalleryTemplateStyle" />
 
+    <ContactStyling v-else-if="mode === 'style' && selectedTemplate && isContactVariant(selectedTemplate.variant)"
+      v-model="selectedContactTemplateStyle" />
+
     <Styling v-else :general="general" @update:general="updateGeneral" />
   </section>
-
-  <TemplatePicker v-if="showTemplatePicker" :templateType="pickedTemplateType" @close="showTemplatePicker = false"
-    @select="onTemplateVariantSelect" />
 </template>
 
 <script setup lang="ts">
@@ -45,14 +45,17 @@ import ProjectsStyling from '@/components/ProjectsStyling.vue'
 import type { ProjectsTemplateStyle } from '@/components/ProjectsStyling.vue'
 import GalleryStyling from '@/components/GalleryStyling.vue'
 import type { GalleryTemplateStyle } from '@/components/GalleryStyling.vue'
-import TemplatePicker from '@/components/TemplatePicker.vue'
+import ContactStyling from '@/components/ContactStyling.vue'
+import type { ContactTemplateStyle } from '@/components/ContactStyling.vue'
 import { useAuth } from '@/auth/auth'
 import { textComponents } from '@/components/templates/text'
 import { imageComponents } from '@/components/templates/image'
 import { projectComponents } from '@/components/templates/projects'
 import { galleryComponents } from '@/components/templates/gallery'
+import { contactComponents } from '@/components/templates/contact'
 
 type Mode = 'general' | 'style' | 'reorder' | 'delete'
+type TemplateInstance = { id: string; variant: string; props: Record<string, any> }
 
 type TemplateStyle = {
   title: string
@@ -71,8 +74,6 @@ type TemplateStyle = {
   headingColor: string
   bgColor: string
 }
-
-type TemplateInstance = { id: string; variant: string; props: Record<string, any> }
 
 const defaultTemplateStyle: TemplateStyle = {
   title: 'Heading',
@@ -127,6 +128,52 @@ const defaultGalleryTemplateStyle: GalleryTemplateStyle = {
   items: [],
 }
 
+const defaultContactTemplateStyle: ContactTemplateStyle = {
+  heading: 'Contact',
+  name: '',
+  role: '',
+  bio: '',
+  email: '',
+  phone: '',
+  address: '',
+  city: '',
+  country: '',
+  website: '',
+  linkedin: '',
+  github: '',
+  skills: '',
+  languages: '',
+  specialization: '',
+  education: [],
+  experience: [],
+  imageSrc: '',
+  photoFit: 'cover',
+  photoSize: 160,
+  photoPosX: 50,
+  photoPosY: 50,
+  showPhoto: true,
+  showName: true,
+  showRole: true,
+  showBio: true,
+  showEmail: true,
+  showPhone: true,
+  showAddress: true,
+  showCity: true,
+  showCountry: true,
+  showWebsite: true,
+  showLinkedin: true,
+  showGithub: true,
+  showSkills: true,
+  showLanguages: true,
+  showSpecialization: true,
+  showEducation: true,
+  showExperience: true,
+  padTop: 0,
+  padRight: 0,
+  padBottom: 0,
+  padLeft: 0,
+}
+
 function makeDefaultProject() {
   return {
     id: crypto.randomUUID(),
@@ -155,49 +202,55 @@ function makeDefaultGalleryItem() {
 
 const { token } = useAuth()
 
-const ready = ref<boolean>(false)
+const ready = ref(false)
 const mode = ref<Mode>('general')
-
-const showTemplatePicker = ref<boolean>(false)
-const pickedTemplateType = ref<string>('')
-
 const templates = ref<TemplateInstance[]>([])
-const selectedId = ref<string>('')
+const selectedId = ref('')
 
 const selectedTemplate = computed<TemplateInstance | null>(
   () => templates.value.find((t) => t.id === selectedId.value) ?? null,
 )
 
-const textVariantSet = new Set<string>(textComponents.map((t) => t.variant))
-const imageVariantSet = new Set<string>(imageComponents.map((t) => t.variant))
-const projectVariantSet = new Set<string>(projectComponents.map((t) => t.variant))
-const galleryVariantSet = new Set<string>(galleryComponents.map((t) => t.variant))
+type TextVariant = (typeof textComponents)[number]['variant']
+type ImageVariant = (typeof imageComponents)[number]['variant']
+type ProjectVariant = (typeof projectComponents)[number]['variant']
+type GalleryVariant = (typeof galleryComponents)[number]['variant']
+type ContactVariant = (typeof contactComponents)[number]['variant']
 
-function isTextVariant(variant: string): boolean {
-  return textVariantSet.has(variant)
+const textVariantSet = new Set<TextVariant>(textComponents.map((t) => t.variant))
+const imageVariantSet = new Set<ImageVariant>(imageComponents.map((t) => t.variant))
+const projectVariantSet = new Set<ProjectVariant>(projectComponents.map((t) => t.variant))
+const galleryVariantSet = new Set<GalleryVariant>(galleryComponents.map((t) => t.variant))
+const contactVariantSet = new Set<ContactVariant>(contactComponents.map((t) => t.variant))
+
+function isTextVariant(variant: string): variant is TextVariant {
+  return textVariantSet.has(variant as TextVariant)
 }
 
-function isImageVariant(variant: string): boolean {
-  return imageVariantSet.has(variant)
+function isImageVariant(variant: string): variant is ImageVariant {
+  return imageVariantSet.has(variant as ImageVariant)
 }
 
-function isProjectVariant(variant: string): boolean {
-  return projectVariantSet.has(variant)
+function isProjectVariant(variant: string): variant is ProjectVariant {
+  return projectVariantSet.has(variant as ProjectVariant)
 }
 
-function isGalleryVariant(variant: string): boolean {
-  return galleryVariantSet.has(variant)
+function isGalleryVariant(variant: string): variant is GalleryVariant {
+  return galleryVariantSet.has(variant as GalleryVariant)
+}
+
+function isContactVariant(variant: string): variant is ContactVariant {
+  return contactVariantSet.has(variant as ContactVariant)
 }
 
 const selectedTemplateStyle = computed<TemplateStyle>({
   get() {
     const t = selectedTemplate.value
     if (!t || !isTextVariant(t.variant)) return defaultTemplateStyle
-
     return {
       title: (t.props as any).title ?? defaultTemplateStyle.title,
       text: (t.props as any).text ?? defaultTemplateStyle.text,
-      align: ((t.props as any).style?.align ?? defaultTemplateStyle.align) as TemplateStyle['align'],
+      align: ((t.props as any).style?.align ?? defaultTemplateStyle.align) as any,
       gapHeadingText: ((t.props as any).style?.gapHeadingText ?? defaultTemplateStyle.gapHeadingText) as number,
       padTop: ((t.props as any).style?.padTop ?? defaultTemplateStyle.padTop) as number,
       padRight: ((t.props as any).style?.padRight ?? defaultTemplateStyle.padRight) as number,
@@ -215,7 +268,6 @@ const selectedTemplateStyle = computed<TemplateStyle>({
   set(v) {
     const t = selectedTemplate.value
     if (!t || !isTextVariant(t.variant)) return
-
       ; (t.props as any).title = v.title
       ; (t.props as any).text = v.text
       ; (t.props as any).style = {
@@ -240,11 +292,10 @@ const selectedImageTemplateStyle = computed<ImageTemplateStyle>({
   get() {
     const t = selectedTemplate.value
     if (!t || !isImageVariant(t.variant)) return defaultImageTemplateStyle
-
     return {
       src: (t.props as any).src ?? defaultImageTemplateStyle.src,
       caption: (t.props as any).caption ?? defaultImageTemplateStyle.caption,
-      align: ((t.props as any).style?.align ?? defaultImageTemplateStyle.align) as ImageTemplateStyle['align'],
+      align: ((t.props as any).style?.align ?? defaultImageTemplateStyle.align) as any,
       widthPct: ((t.props as any).style?.widthPct ?? defaultImageTemplateStyle.widthPct) as number,
       padTop: ((t.props as any).style?.padTop ?? defaultImageTemplateStyle.padTop) as number,
       padRight: ((t.props as any).style?.padRight ?? defaultImageTemplateStyle.padRight) as number,
@@ -256,7 +307,6 @@ const selectedImageTemplateStyle = computed<ImageTemplateStyle>({
   set(v) {
     const t = selectedTemplate.value
     if (!t || !isImageVariant(t.variant)) return
-
       ; (t.props as any).src = v.src
       ; (t.props as any).caption = v.caption
       ; (t.props as any).style = {
@@ -274,26 +324,21 @@ const selectedProjectsTemplateStyle = computed<ProjectsTemplateStyle>({
   get() {
     const t = selectedTemplate.value
     if (!t || !isProjectVariant(t.variant)) return defaultProjectsTemplateStyle
-
     const p = t.props as any
     const st = p.style ?? {}
-
     return {
       heading: (p.heading ?? defaultProjectsTemplateStyle.heading) as string,
-      layout: (p.layout ?? defaultProjectsTemplateStyle.layout) as ProjectsTemplateStyle['layout'],
+      layout: (p.layout ?? defaultProjectsTemplateStyle.layout) as any,
       padTop: (st.padTop ?? defaultProjectsTemplateStyle.padTop) as number,
       padRight: (st.padRight ?? defaultProjectsTemplateStyle.padRight) as number,
       padBottom: (st.padBottom ?? defaultProjectsTemplateStyle.padBottom) as number,
       padLeft: (st.padLeft ?? defaultProjectsTemplateStyle.padLeft) as number,
-      projects: (Array.isArray(p.projects) && p.projects.length
-        ? p.projects
-        : [makeDefaultProject()]) as ProjectsTemplateStyle['projects'],
+      projects: (Array.isArray(p.projects) && p.projects.length ? p.projects : [makeDefaultProject()]) as any,
     }
   },
   set(v) {
     const t = selectedTemplate.value
     if (!t || !isProjectVariant(t.variant)) return
-
       ; (t.props as any).heading = v.heading
       ; (t.props as any).layout = v.layout
       ; (t.props as any).projects = v.projects
@@ -310,13 +355,11 @@ const selectedGalleryTemplateStyle = computed<GalleryTemplateStyle>({
   get() {
     const t = selectedTemplate.value
     if (!t || !isGalleryVariant(t.variant)) return defaultGalleryTemplateStyle
-
     const p = t.props as any
     const st = p.style ?? {}
-
     return {
       heading: (p.heading ?? defaultGalleryTemplateStyle.heading) as string,
-      layout: (p.layout ?? defaultGalleryTemplateStyle.layout) as GalleryTemplateStyle['layout'],
+      layout: (p.layout ?? defaultGalleryTemplateStyle.layout) as any,
       columns: (st.columns ?? defaultGalleryTemplateStyle.columns) as number,
       gap: (st.gap ?? defaultGalleryTemplateStyle.gap) as number,
       imageHeight: (st.imageHeight ?? defaultGalleryTemplateStyle.imageHeight) as number,
@@ -324,15 +367,12 @@ const selectedGalleryTemplateStyle = computed<GalleryTemplateStyle>({
       padRight: (st.padRight ?? defaultGalleryTemplateStyle.padRight) as number,
       padBottom: (st.padBottom ?? defaultGalleryTemplateStyle.padBottom) as number,
       padLeft: (st.padLeft ?? defaultGalleryTemplateStyle.padLeft) as number,
-      items: (Array.isArray(p.items) && p.items.length
-        ? p.items
-        : [makeDefaultGalleryItem()]) as GalleryTemplateStyle['items'],
+      items: (Array.isArray(p.items) && p.items.length ? p.items : [makeDefaultGalleryItem()]) as any,
     }
   },
   set(v) {
     const t = selectedTemplate.value
     if (!t || !isGalleryVariant(t.variant)) return
-
       ; (t.props as any).heading = v.heading
       ; (t.props as any).layout = v.layout
       ; (t.props as any).items = v.items
@@ -345,6 +385,111 @@ const selectedGalleryTemplateStyle = computed<GalleryTemplateStyle>({
         padBottom: v.padBottom,
         padLeft: v.padLeft,
       }
+  },
+})
+
+const selectedContactTemplateStyle = computed<ContactTemplateStyle>({
+  get() {
+    const t = selectedTemplate.value
+    if (!t || !isContactVariant(t.variant)) return defaultContactTemplateStyle
+    const p = t.props as any
+    const st = p.style ?? {}
+    return {
+      heading: (p.heading ?? defaultContactTemplateStyle.heading) as string,
+      name: (p.name ?? defaultContactTemplateStyle.name) as string,
+      role: (p.role ?? defaultContactTemplateStyle.role) as string,
+      bio: (p.bio ?? defaultContactTemplateStyle.bio) as string,
+      email: (p.email ?? defaultContactTemplateStyle.email) as string,
+      phone: (p.phone ?? defaultContactTemplateStyle.phone) as string,
+      address: (p.address ?? defaultContactTemplateStyle.address) as string,
+      city: (p.city ?? defaultContactTemplateStyle.city) as string,
+      country: (p.country ?? defaultContactTemplateStyle.country) as string,
+      website: (p.website ?? defaultContactTemplateStyle.website) as string,
+      linkedin: (p.linkedin ?? defaultContactTemplateStyle.linkedin) as string,
+      github: (p.github ?? defaultContactTemplateStyle.github) as string,
+      skills: (p.skills ?? defaultContactTemplateStyle.skills) as string,
+      languages: (p.languages ?? defaultContactTemplateStyle.languages) as string,
+      specialization: (p.specialization ?? defaultContactTemplateStyle.specialization) as string,
+      education: (Array.isArray(p.education) ? p.education : []) as any,
+      experience: (Array.isArray(p.experience) ? p.experience : []) as any,
+      imageSrc: (p.imageSrc ?? defaultContactTemplateStyle.imageSrc) as string,
+      photoFit: (p.photoFit ?? defaultContactTemplateStyle.photoFit) as any,
+      photoSize: (p.photoSize ?? st.photoSize ?? defaultContactTemplateStyle.photoSize) as number,
+      photoPosX: (p.photoPosX ?? defaultContactTemplateStyle.photoPosX) as number,
+      photoPosY: (p.photoPosY ?? defaultContactTemplateStyle.photoPosY) as number,
+      showPhoto: (p.showPhoto ?? defaultContactTemplateStyle.showPhoto) as boolean,
+      showName: (p.showName ?? defaultContactTemplateStyle.showName) as boolean,
+      showRole: (p.showRole ?? defaultContactTemplateStyle.showRole) as boolean,
+      showBio: (p.showBio ?? defaultContactTemplateStyle.showBio) as boolean,
+      showEmail: (p.showEmail ?? defaultContactTemplateStyle.showEmail) as boolean,
+      showPhone: (p.showPhone ?? defaultContactTemplateStyle.showPhone) as boolean,
+      showAddress: (p.showAddress ?? defaultContactTemplateStyle.showAddress) as boolean,
+      showCity: (p.showCity ?? defaultContactTemplateStyle.showCity) as boolean,
+      showCountry: (p.showCountry ?? defaultContactTemplateStyle.showCountry) as boolean,
+      showWebsite: (p.showWebsite ?? defaultContactTemplateStyle.showWebsite) as boolean,
+      showLinkedin: (p.showLinkedin ?? defaultContactTemplateStyle.showLinkedin) as boolean,
+      showGithub: (p.showGithub ?? defaultContactTemplateStyle.showGithub) as boolean,
+      showSkills: (p.showSkills ?? defaultContactTemplateStyle.showSkills) as boolean,
+      showLanguages: (p.showLanguages ?? defaultContactTemplateStyle.showLanguages) as boolean,
+      showSpecialization: (p.showSpecialization ?? defaultContactTemplateStyle.showSpecialization) as boolean,
+      showEducation: (p.showEducation ?? defaultContactTemplateStyle.showEducation) as boolean,
+      showExperience: (p.showExperience ?? defaultContactTemplateStyle.showExperience) as boolean,
+      padTop: (st.padTop ?? defaultContactTemplateStyle.padTop) as number,
+      padRight: (st.padRight ?? defaultContactTemplateStyle.padRight) as number,
+      padBottom: (st.padBottom ?? defaultContactTemplateStyle.padBottom) as number,
+      padLeft: (st.padLeft ?? defaultContactTemplateStyle.padLeft) as number,
+    }
+  },
+  set(v) {
+    const t = selectedTemplate.value
+    if (!t || !isContactVariant(t.variant)) return
+    const p = t.props as any
+    p.heading = v.heading
+    p.name = v.name
+    p.role = v.role
+    p.bio = v.bio
+    p.email = v.email
+    p.phone = v.phone
+    p.address = v.address
+    p.city = v.city
+    p.country = v.country
+    p.website = v.website
+    p.linkedin = v.linkedin
+    p.github = v.github
+    p.skills = v.skills
+    p.languages = v.languages
+    p.specialization = v.specialization
+    p.education = v.education
+    p.experience = v.experience
+    p.imageSrc = v.imageSrc
+    p.photoFit = v.photoFit
+    p.photoSize = v.photoSize
+    p.photoPosX = v.photoPosX
+    p.photoPosY = v.photoPosY
+    p.showPhoto = v.showPhoto
+    p.showName = v.showName
+    p.showRole = v.showRole
+    p.showBio = v.showBio
+    p.showEmail = v.showEmail
+    p.showPhone = v.showPhone
+    p.showAddress = v.showAddress
+    p.showCity = v.showCity
+    p.showCountry = v.showCountry
+    p.showWebsite = v.showWebsite
+    p.showLinkedin = v.showLinkedin
+    p.showGithub = v.showGithub
+    p.showSkills = v.showSkills
+    p.showLanguages = v.showLanguages
+    p.showSpecialization = v.showSpecialization
+    p.showEducation = v.showEducation
+    p.showExperience = v.showExperience
+    p.style = {
+      padTop: v.padTop,
+      padRight: v.padRight,
+      padBottom: v.padBottom,
+      padLeft: v.padLeft,
+      photoSize: v.photoSize,
+    }
   },
 })
 
@@ -365,34 +510,19 @@ const general = reactive({
 })
 
 function onAddTemplateClick(templateType: string) {
-  if (templateType === 'image') {
-    addImageTemplate()
-    return
-  }
-
-  if (templateType === 'projects') {
-    addProjectsTemplate()
-    return
-  }
-
-  if (templateType === 'gallery') {
-    addGalleryTemplate()
-    return
-  }
-
-  pickedTemplateType.value = templateType
-  showTemplatePicker.value = true
+  if (templateType === 'image') return addImageTemplate()
+  if (templateType === 'projects') return addProjectsTemplate()
+  if (templateType === 'gallery') return addGalleryTemplate()
+  if (templateType === 'contact') return addContactTemplate()
 }
 
 function onEditTemplate(id: string) {
   selectedId.value = id
 }
-
 function onDeleteTemplate(id: string) {
   templates.value = templates.value.filter((t) => t.id !== id)
   if (selectedId.value === id) selectedId.value = ''
 }
-
 function onMoveTemplate(id: string, dir: -1 | 1) {
   const from = templates.value.findIndex((t) => t.id === id)
   if (from < 0) return
@@ -406,167 +536,37 @@ function onMoveTemplate(id: string, dir: -1 | 1) {
 }
 
 function normalizeCreatedTemplate(created: TemplateInstance): TemplateInstance {
-  if (isTextVariant(created.variant)) {
-    ; (created.props as any).title = (created.props as any).title ?? defaultTemplateStyle.title
-      ; (created.props as any).text = (created.props as any).text ?? defaultTemplateStyle.text
-      ; (created.props as any).style =
-        (created.props as any).style ??
-        {
-          align: defaultTemplateStyle.align,
-          gapHeadingText: defaultTemplateStyle.gapHeadingText,
-          padTop: defaultTemplateStyle.padTop,
-          padRight: defaultTemplateStyle.padRight,
-          padBottom: defaultTemplateStyle.padBottom,
-          padLeft: defaultTemplateStyle.padLeft,
-          marTop: defaultTemplateStyle.marTop,
-          marRight: defaultTemplateStyle.marRight,
-          marBottom: defaultTemplateStyle.marBottom,
-          marLeft: defaultTemplateStyle.marLeft,
-          textColor: defaultTemplateStyle.textColor,
-          headingColor: defaultTemplateStyle.headingColor,
-          bgColor: defaultTemplateStyle.bgColor,
-        }
-  }
-
-  if (isImageVariant(created.variant)) {
-    ; (created.props as any).src = (created.props as any).src ?? defaultImageTemplateStyle.src
-      ; (created.props as any).caption = (created.props as any).caption ?? defaultImageTemplateStyle.caption
-      ; (created.props as any).style =
-        (created.props as any).style ??
-        {
-          align: defaultImageTemplateStyle.align,
-          widthPct: defaultImageTemplateStyle.widthPct,
-          padTop: defaultImageTemplateStyle.padTop,
-          padRight: defaultImageTemplateStyle.padRight,
-          padBottom: defaultImageTemplateStyle.padBottom,
-          padLeft: defaultImageTemplateStyle.padLeft,
-        }
-  }
-
-  if (isProjectVariant(created.variant)) {
+  if (isContactVariant(created.variant)) {
     const p = created.props as any
-
-    p.heading = p.heading ?? defaultProjectsTemplateStyle.heading
-    p.layout = p.layout ?? defaultProjectsTemplateStyle.layout
-
-    if (!Array.isArray(p.projects) || !p.projects.length) {
-      p.projects = [makeDefaultProject()]
-    } else {
-      p.projects = p.projects.map((x: any) => ({
-        ...x,
-        imageFit: x.imageFit ?? 'cover',
-        imageHeight: x.imageHeight ?? 200,
-        imagePosX: x.imagePosX ?? 50,
-        imagePosY: x.imagePosY ?? 50,
-        other: x.other ?? x.demo ?? '',
-        demo: undefined,
-      }))
-    }
-
-    p.style =
-      p.style ??
-      {
-        padTop: defaultProjectsTemplateStyle.padTop,
-        padRight: defaultProjectsTemplateStyle.padRight,
-        padBottom: defaultProjectsTemplateStyle.padBottom,
-        padLeft: defaultProjectsTemplateStyle.padLeft,
-      }
   }
-
-  if (isGalleryVariant(created.variant)) {
-    const p = created.props as any
-
-    p.heading = p.heading ?? defaultGalleryTemplateStyle.heading
-    p.layout = p.layout ?? defaultGalleryTemplateStyle.layout
-
-    if (!Array.isArray(p.items) || !p.items.length) {
-      p.items = [makeDefaultGalleryItem()]
-    } else {
-      p.items = p.items.map((x: any) => ({
-        ...x,
-        imageFit: x.imageFit ?? 'cover',
-        imagePosX: x.imagePosX ?? 50,
-        imagePosY: x.imagePosY ?? 50,
-        imageHeight: undefined,
-      }))
-    }
-
-    p.style =
-      p.style ??
-      {
-        columns: defaultGalleryTemplateStyle.columns,
-        gap: defaultGalleryTemplateStyle.gap,
-        imageHeight: defaultGalleryTemplateStyle.imageHeight,
-        padTop: defaultGalleryTemplateStyle.padTop,
-        padRight: defaultGalleryTemplateStyle.padRight,
-        padBottom: defaultGalleryTemplateStyle.padBottom,
-        padLeft: defaultGalleryTemplateStyle.padLeft,
-      }
-
-    p.style.imageHeight = p.style.imageHeight ?? defaultGalleryTemplateStyle.imageHeight
-  }
-
   return created
 }
 
 function addTextTemplate() {
   const def = textComponents[0]
   if (!def) return
-  templates.value.push(
-    normalizeCreatedTemplate({
-      id: crypto.randomUUID(),
-      variant: def.variant,
-      props: def.createDefaultProps(),
-    }),
-  )
+  templates.value.push({ id: crypto.randomUUID(), variant: def.variant, props: def.createDefaultProps() })
 }
-
 function addImageTemplate() {
   const def = imageComponents[0]
   if (!def) return
-  templates.value.push(
-    normalizeCreatedTemplate({
-      id: crypto.randomUUID(),
-      variant: def.variant,
-      props: def.createDefaultProps(),
-    }),
-  )
+  templates.value.push({ id: crypto.randomUUID(), variant: def.variant, props: def.createDefaultProps() })
 }
-
 function addProjectsTemplate() {
   const def = projectComponents[0]
   if (!def) return
-  templates.value.push(
-    normalizeCreatedTemplate({
-      id: crypto.randomUUID(),
-      variant: def.variant,
-      props: def.createDefaultProps(),
-    }),
-  )
+  templates.value.push({ id: crypto.randomUUID(), variant: def.variant, props: def.createDefaultProps() })
 }
-
 function addGalleryTemplate() {
   const def = galleryComponents[0]
   if (!def) return
-  templates.value.push(
-    normalizeCreatedTemplate({
-      id: crypto.randomUUID(),
-      variant: def.variant,
-      props: def.createDefaultProps(),
-    }),
-  )
+  templates.value.push({ id: crypto.randomUUID(), variant: def.variant, props: def.createDefaultProps() })
 }
-
-function onTemplateVariantSelect(variant: string) {
-  const def = textComponents.find((t) => t.variant === variant)
+function addContactTemplate() {
+  const def = contactComponents[0]
   if (!def) return
-
   templates.value.push(
-    normalizeCreatedTemplate({
-      id: crypto.randomUUID(),
-      variant,
-      props: def.createDefaultProps(),
-    }),
+    normalizeCreatedTemplate({ id: crypto.randomUUID(), variant: def.variant, props: def.createDefaultProps() }),
   )
 }
 
@@ -576,15 +576,10 @@ async function loadPortfolio() {
     ready.value = true
     return
   }
-
   try {
-    const res = await fetch('http://localhost:3000/portfolio/me', {
-      headers: { Authorization: `Bearer ${t}` },
-    })
-
+    const res = await fetch('http://localhost:3000/portfolio/me', { headers: { Authorization: `Bearer ${t}` } })
     const json = await res.json().catch(() => null)
     const data = json?.data
-
     if (data?.general) Object.assign(general, data.general)
     if (Array.isArray(data?.templates)) templates.value = data.templates
   } finally {
@@ -595,42 +590,25 @@ async function loadPortfolio() {
 async function savePortfolio() {
   const t = token()
   if (!t) return
-
   await fetch('http://localhost:3000/portfolio/me', {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${t}`,
-    },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
     body: JSON.stringify({ general, templates: templates.value }),
   })
 }
 
 let saveTimeout: number | null = null
-
 function queueSave() {
   if (saveTimeout) window.clearTimeout(saveTimeout)
-  saveTimeout = window.setTimeout(() => {
-    savePortfolio()
-  }, 400)
+  saveTimeout = window.setTimeout(() => savePortfolio(), 400)
 }
-
 function updateGeneral(v: typeof general) {
   Object.assign(general, v)
   queueSave()
 }
 
-watch(
-  templates,
-  () => {
-    queueSave()
-  },
-  { deep: true },
-)
-
-onMounted(() => {
-  loadPortfolio()
-})
+watch(templates, () => queueSave(), { deep: true })
+onMounted(() => loadPortfolio())
 </script>
 
 <style scoped lang="scss">

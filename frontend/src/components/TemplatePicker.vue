@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Type, LayoutGrid, Grid2X2, Mail } from 'lucide-vue-next'
+import { Type } from 'lucide-vue-next'
 
 const props = defineProps<{
     templateType: string
@@ -37,17 +37,9 @@ const emit = defineEmits<{
 }>()
 
 const variants: Record<string, Array<{ variant: string; name: string; icon: any }>> = {
-    gallery: [
-        { variant: 'gallery.grid', name: 'Grid gallery', icon: Grid2X2 },
-        { variant: 'gallery.masonry', name: 'Masonry gallery', icon: Grid2X2 },
-        { variant: 'gallery.carousel', name: 'Carousel gallery', icon: Grid2X2 },
-        { variant: 'gallery.fullscreen', name: 'Fullscreen gallery', icon: Grid2X2 },
-    ],
-    contact: [
-        { variant: 'contact.basic', name: 'Basic contact', icon: Mail },
-        { variant: 'contact.split', name: 'Split layout', icon: Mail },
-        { variant: 'contact.centered', name: 'Centered contact', icon: Mail },
-        { variant: 'contact.map', name: 'Contact with map', icon: Mail },
+    text: [
+        { variant: 'text.basic', name: 'Basic text', icon: Type },
+        { variant: 'text.centered', name: 'Centered text', icon: Type },
     ],
 }
 

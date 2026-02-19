@@ -42,6 +42,7 @@ import { textComponents } from '@/components/templates/text'
 import { imageComponents } from '@/components/templates/image'
 import { projectComponents } from '@/components/templates/projects'
 import { galleryComponents } from '@/components/templates/gallery'
+import { contactComponents } from '@/components/templates/contact'
 import { Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-vue-next'
 
 type TemplateItem = { id: string; variant: string; props: Record<string, any> }
@@ -83,7 +84,10 @@ const vars = computed(() => ({
 }))
 
 const variantMap: Record<string, any> = Object.fromEntries(
-  [...textComponents, ...imageComponents, ...projectComponents, ...galleryComponents].map(t => [t.variant, t.component]),
+  [...textComponents, ...imageComponents, ...projectComponents, ...galleryComponents, ...contactComponents].map((t) => [
+    t.variant,
+    t.component,
+  ]),
 )
 
 function resolveVariant(variant: string): any {
@@ -109,7 +113,7 @@ function getAlign(t: { props: Record<string, any> }): 'left' | 'center' | 'right
   overflow-y: auto;
 }
 
-.showcase :where(p, li, span):not(.heading) {
+.showcase :where(p, li, span, a):not(.heading) {
   font-size: var(--text-size);
   font-family: var(--font-family-showcase);
 }
