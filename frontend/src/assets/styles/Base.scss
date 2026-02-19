@@ -1,17 +1,21 @@
-h1,
-h2,
-h3,
-p {
+:root {
   font-family: 'Inter', sans-serif;
 }
 
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+h1,
+h2,
+h3,
+p,
+label,
 input,
 button,
 textarea,
-select,
-label,
-input {
-  font-family: 'Inter', sans-serif;
+select {
+  font-family: inherit;
 }
 
 button:hover {
