@@ -9,6 +9,9 @@ aside {
     margin: var(--margin-primary);
     box-shadow: var(--box-shadow-primary);
     border: var(--border-primary);
+    max-height: 100vh;
+    overflow-y: auto;
+    align-self: stretch;
 }
 
 .title {

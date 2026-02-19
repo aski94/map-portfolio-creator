@@ -21,6 +21,9 @@
     <ProjectsStyling v-else-if="mode === 'style' && selectedTemplate && isProjectVariant(selectedTemplate.variant)"
       v-model="selectedProjectsTemplateStyle" />
 
+    <GalleryStyling v-else-if="mode === 'style' && selectedTemplate && isGalleryVariant(selectedTemplate.variant)"
+      v-model="selectedGalleryTemplateStyle" />
+
     <Styling v-else :general="general" @update:general="updateGeneral" />
   </section>
 
@@ -40,11 +43,14 @@ import ImageTemplateStyling from '@/components/ImageTemplateStyling.vue'
 import type { ImageTemplateStyle } from '@/components/ImageTemplateStyling.vue'
 import ProjectsStyling from '@/components/ProjectsStyling.vue'
 import type { ProjectsTemplateStyle } from '@/components/ProjectsStyling.vue'
+import GalleryStyling from '@/components/GalleryStyling.vue'
+import type { GalleryTemplateStyle } from '@/components/GalleryStyling.vue'
 import TemplatePicker from '@/components/TemplatePicker.vue'
 import { useAuth } from '@/auth/auth'
 import { textComponents } from '@/components/templates/text'
 import { imageComponents } from '@/components/templates/image'
 import { projectComponents } from '@/components/templates/projects'
+import { galleryComponents } from '@/components/templates/gallery'
 
 type Mode = 'general' | 'style' | 'reorder' | 'delete'
 
@@ -105,21 +111,46 @@ const defaultProjectsTemplateStyle: ProjectsTemplateStyle = {
   padRight: 0,
   padBottom: 0,
   padLeft: 0,
-  projects: [
-    {
-      id: crypto.randomUUID(),
-      title: 'Project title',
-      description: 'Short description...',
-      tags: ['Vue', 'TypeScript'],
-      imageSrc: '',
-      imageFit: 'cover',
-      imageHeight: 200,
-      imagePosX: 50,
-      imagePosY: 50,
-      github: '',
-      other: '',
-    },
-  ],
+  projects: [],
+}
+
+const defaultGalleryTemplateStyle: GalleryTemplateStyle = {
+  heading: 'Gallery',
+  layout: 'grid',
+  columns: 3,
+  gap: 8,
+  imageHeight: 200,
+  padTop: 0,
+  padRight: 0,
+  padBottom: 0,
+  padLeft: 0,
+  items: [],
+}
+
+function makeDefaultProject() {
+  return {
+    id: crypto.randomUUID(),
+    title: 'Project name',
+    description: 'Short description of what you built.',
+    tags: ['Tag 1', 'Tag 2'],
+    imageSrc: '',
+    imageFit: 'cover' as const,
+    imageHeight: 200,
+    imagePosX: 50,
+    imagePosY: 50,
+    github: '',
+    other: '',
+  }
+}
+
+function makeDefaultGalleryItem() {
+  return {
+    id: crypto.randomUUID(),
+    imageSrc: '',
+    imageFit: 'cover' as const,
+    imagePosX: 50,
+    imagePosY: 50,
+  }
 }
 
 const { token } = useAuth()
@@ -140,6 +171,7 @@ const selectedTemplate = computed<TemplateInstance | null>(
 const textVariantSet = new Set<string>(textComponents.map((t) => t.variant))
 const imageVariantSet = new Set<string>(imageComponents.map((t) => t.variant))
 const projectVariantSet = new Set<string>(projectComponents.map((t) => t.variant))
+const galleryVariantSet = new Set<string>(galleryComponents.map((t) => t.variant))
 
 function isTextVariant(variant: string): boolean {
   return textVariantSet.has(variant)
@@ -151,6 +183,10 @@ function isImageVariant(variant: string): boolean {
 
 function isProjectVariant(variant: string): boolean {
   return projectVariantSet.has(variant)
+}
+
+function isGalleryVariant(variant: string): boolean {
+  return galleryVariantSet.has(variant)
 }
 
 const selectedTemplateStyle = computed<TemplateStyle>({
@@ -251,7 +287,7 @@ const selectedProjectsTemplateStyle = computed<ProjectsTemplateStyle>({
       padLeft: (st.padLeft ?? defaultProjectsTemplateStyle.padLeft) as number,
       projects: (Array.isArray(p.projects) && p.projects.length
         ? p.projects
-        : defaultProjectsTemplateStyle.projects) as ProjectsTemplateStyle['projects'],
+        : [makeDefaultProject()]) as ProjectsTemplateStyle['projects'],
     }
   },
   set(v) {
@@ -262,6 +298,48 @@ const selectedProjectsTemplateStyle = computed<ProjectsTemplateStyle>({
       ; (t.props as any).layout = v.layout
       ; (t.props as any).projects = v.projects
       ; (t.props as any).style = {
+        padTop: v.padTop,
+        padRight: v.padRight,
+        padBottom: v.padBottom,
+        padLeft: v.padLeft,
+      }
+  },
+})
+
+const selectedGalleryTemplateStyle = computed<GalleryTemplateStyle>({
+  get() {
+    const t = selectedTemplate.value
+    if (!t || !isGalleryVariant(t.variant)) return defaultGalleryTemplateStyle
+
+    const p = t.props as any
+    const st = p.style ?? {}
+
+    return {
+      heading: (p.heading ?? defaultGalleryTemplateStyle.heading) as string,
+      layout: (p.layout ?? defaultGalleryTemplateStyle.layout) as GalleryTemplateStyle['layout'],
+      columns: (st.columns ?? defaultGalleryTemplateStyle.columns) as number,
+      gap: (st.gap ?? defaultGalleryTemplateStyle.gap) as number,
+      imageHeight: (st.imageHeight ?? defaultGalleryTemplateStyle.imageHeight) as number,
+      padTop: (st.padTop ?? defaultGalleryTemplateStyle.padTop) as number,
+      padRight: (st.padRight ?? defaultGalleryTemplateStyle.padRight) as number,
+      padBottom: (st.padBottom ?? defaultGalleryTemplateStyle.padBottom) as number,
+      padLeft: (st.padLeft ?? defaultGalleryTemplateStyle.padLeft) as number,
+      items: (Array.isArray(p.items) && p.items.length
+        ? p.items
+        : [makeDefaultGalleryItem()]) as GalleryTemplateStyle['items'],
+    }
+  },
+  set(v) {
+    const t = selectedTemplate.value
+    if (!t || !isGalleryVariant(t.variant)) return
+
+      ; (t.props as any).heading = v.heading
+      ; (t.props as any).layout = v.layout
+      ; (t.props as any).items = v.items
+      ; (t.props as any).style = {
+        columns: v.columns,
+        gap: v.gap,
+        imageHeight: v.imageHeight,
         padTop: v.padTop,
         padRight: v.padRight,
         padBottom: v.padBottom,
@@ -294,6 +372,11 @@ function onAddTemplateClick(templateType: string) {
 
   if (templateType === 'projects') {
     addProjectsTemplate()
+    return
+  }
+
+  if (templateType === 'gallery') {
+    addGalleryTemplate()
     return
   }
 
@@ -367,7 +450,7 @@ function normalizeCreatedTemplate(created: TemplateInstance): TemplateInstance {
     p.layout = p.layout ?? defaultProjectsTemplateStyle.layout
 
     if (!Array.isArray(p.projects) || !p.projects.length) {
-      p.projects = defaultProjectsTemplateStyle.projects
+      p.projects = [makeDefaultProject()]
     } else {
       p.projects = p.projects.map((x: any) => ({
         ...x,
@@ -388,6 +471,39 @@ function normalizeCreatedTemplate(created: TemplateInstance): TemplateInstance {
         padBottom: defaultProjectsTemplateStyle.padBottom,
         padLeft: defaultProjectsTemplateStyle.padLeft,
       }
+  }
+
+  if (isGalleryVariant(created.variant)) {
+    const p = created.props as any
+
+    p.heading = p.heading ?? defaultGalleryTemplateStyle.heading
+    p.layout = p.layout ?? defaultGalleryTemplateStyle.layout
+
+    if (!Array.isArray(p.items) || !p.items.length) {
+      p.items = [makeDefaultGalleryItem()]
+    } else {
+      p.items = p.items.map((x: any) => ({
+        ...x,
+        imageFit: x.imageFit ?? 'cover',
+        imagePosX: x.imagePosX ?? 50,
+        imagePosY: x.imagePosY ?? 50,
+        imageHeight: undefined,
+      }))
+    }
+
+    p.style =
+      p.style ??
+      {
+        columns: defaultGalleryTemplateStyle.columns,
+        gap: defaultGalleryTemplateStyle.gap,
+        imageHeight: defaultGalleryTemplateStyle.imageHeight,
+        padTop: defaultGalleryTemplateStyle.padTop,
+        padRight: defaultGalleryTemplateStyle.padRight,
+        padBottom: defaultGalleryTemplateStyle.padBottom,
+        padLeft: defaultGalleryTemplateStyle.padLeft,
+      }
+
+    p.style.imageHeight = p.style.imageHeight ?? defaultGalleryTemplateStyle.imageHeight
   }
 
   return created
@@ -420,7 +536,18 @@ function addImageTemplate() {
 function addProjectsTemplate() {
   const def = projectComponents[0]
   if (!def) return
+  templates.value.push(
+    normalizeCreatedTemplate({
+      id: crypto.randomUUID(),
+      variant: def.variant,
+      props: def.createDefaultProps(),
+    }),
+  )
+}
 
+function addGalleryTemplate() {
+  const def = galleryComponents[0]
+  if (!def) return
   templates.value.push(
     normalizeCreatedTemplate({
       id: crypto.randomUUID(),
