@@ -29,13 +29,14 @@ export async function exportShowcaseAsPdf(showcaseEl: HTMLElement, filename = 'p
     await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
 
     resolveBordersFromComputed(clone)
+    resolveImageHeights(clone)
 
     await new Promise<void>((r) => requestAnimationFrame(() => r()))
 
     try {
         await (html2pdf() as any)
             .set({
-                margin: [10, 10, 10, 10],
+                margin: [10, 10, 0, 10],
                 filename,
                 pagebreak: { mode: ['css', 'legacy'] },
                 image: { type: 'jpeg', quality: 0.98 },
@@ -96,7 +97,7 @@ ${clone.outerHTML}
 function sanitizeClone(root: HTMLElement) {
     root.querySelectorAll('.action,.reorder').forEach((n) => n.remove())
     root.querySelectorAll('.template.selected').forEach((n) => n.classList.remove('selected'))
-    root.style.cssText += ';overflow:visible;box-shadow:none;border:none;margin:0;border-radius:0;'
+    root.style.cssText += ';overflow:visible;box-shadow:none;border:none;margin:0;border-radius:0;padding-top:0;padding-bottom:0;'
 }
 
 function resolveBordersFromComputed(root: HTMLElement) {
@@ -109,8 +110,9 @@ function resolveBordersFromComputed(root: HTMLElement) {
             el.style.setProperty('border', `${bw} ${bs} ${bc}`)
         }
         const raw = parseFloat(cs.getPropertyValue('border-radius'))
-        el.style.setProperty('border-radius', '20px')
-        el.style.setProperty('padding-bottom', '1.5em')
+        el.style.setProperty('border-radius', raw > 100 ? '9999px' : cs.getPropertyValue('border-radius'))
+        el.style.setProperty('padding', cs.getPropertyValue('padding'))
+        el.style.setProperty('padding-bottom', '1em')
         el.style.setProperty('display', 'inline-flex')
         el.style.setProperty('align-items', 'center')
         el.style.setProperty('line-height', '1')
@@ -161,6 +163,14 @@ function resolveBordersFromComputed(root: HTMLElement) {
                 }
             })
         }
+    })
+}
+
+function resolveImageHeights(root: HTMLElement) {
+    root.querySelectorAll<HTMLElement>('.thumb-wrap').forEach((el) => {
+        const computed = getComputedStyle(el)
+        const h = computed.getPropertyValue('height').trim()
+        if (h && h !== '0px') el.style.setProperty('height', h)
     })
 }
 
