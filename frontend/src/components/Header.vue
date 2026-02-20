@@ -5,7 +5,7 @@
     </section>
     <nav>
       <button class="button-secondary">Settings</button>
-      <button>Export</button>
+      <button type="button" @click="emit('export')">Export</button>
       <i class="user" @click="onUserClick">
         <User />
       </i>
@@ -23,6 +23,7 @@ import Login from '@/components/Login.vue'
 import SignOut from '@/components/SignOut.vue'
 import { useAuth } from '@/auth/auth'
 
+const emit = defineEmits<{ (e: 'export'): void }>()
 const { isLoggedIn } = useAuth()
 
 const showLogin = ref(false)

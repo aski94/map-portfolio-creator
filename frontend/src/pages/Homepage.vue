@@ -1,11 +1,13 @@
 <template>
-  <Header></Header>
+  <Header @export="onExport" />
+
+  <ExportPicker v-if="showExport" @close="showExport = false" @select="onExportSelect" />
 
   <section v-if="ready" class="layout">
     <AddTemplate @add-text="addTextTemplate" @open="onAddTemplateClick" />
 
     <main>
-      <Toolbar :mode="mode" @update:mode="mode = $event"></Toolbar>
+      <Toolbar :mode="mode" @update:mode="mode = $event" />
 
       <Showcase :general="general" :templates="templates" :styleEnabled="mode === 'style'"
         :deleteEnabled="mode === 'delete'" :reorderEnabled="mode === 'reorder'" :selectedId="selectedId"
@@ -34,6 +36,7 @@
 <script setup lang="ts">
 import { reactive, onMounted, ref, computed, watch } from 'vue'
 import Header from '@/components/Header.vue'
+import ExportPicker from '@/components/ExportPicker.vue'
 import AddTemplate from '@/components/AddTemplate.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import Showcase from '@/components/Showcase.vue'
@@ -53,6 +56,7 @@ import { imageComponents } from '@/components/templates/image'
 import { projectComponents } from '@/components/templates/projects'
 import { galleryComponents } from '@/components/templates/gallery'
 import { contactComponents } from '@/components/templates/contact'
+import { exportShowcaseAsHtml, exportShowcaseAsPdf } from '@/utils/export'
 
 type Mode = 'general' | 'style' | 'reorder' | 'delete'
 type TemplateInstance = { id: string; variant: string; props: Record<string, any> }
@@ -207,6 +211,19 @@ const mode = ref<Mode>('general')
 const templates = ref<TemplateInstance[]>([])
 const selectedId = ref('')
 
+const showExport = ref(false)
+
+function onExport() {
+  showExport.value = true
+}
+
+function onExportSelect(format: 'html' | 'pdf') {
+  const el = document.querySelector('.showcase') as HTMLElement | null
+  if (!el) return
+  if (format === 'html') exportShowcaseAsHtml(el, 'portfolio.html')
+  else exportShowcaseAsPdf(el, 'portfolio.pdf')
+}
+
 const selectedTemplate = computed<TemplateInstance | null>(
   () => templates.value.find((t) => t.id === selectedId.value) ?? null,
 )
@@ -226,19 +243,15 @@ const contactVariantSet = new Set<ContactVariant>(contactComponents.map((t) => t
 function isTextVariant(variant: string): variant is TextVariant {
   return textVariantSet.has(variant as TextVariant)
 }
-
 function isImageVariant(variant: string): variant is ImageVariant {
   return imageVariantSet.has(variant as ImageVariant)
 }
-
 function isProjectVariant(variant: string): variant is ProjectVariant {
   return projectVariantSet.has(variant as ProjectVariant)
 }
-
 function isGalleryVariant(variant: string): variant is GalleryVariant {
   return galleryVariantSet.has(variant as GalleryVariant)
 }
-
 function isContactVariant(variant: string): variant is ContactVariant {
   return contactVariantSet.has(variant as ContactVariant)
 }
@@ -535,13 +548,6 @@ function onMoveTemplate(id: string, dir: -1 | 1) {
   templates.value = list
 }
 
-function normalizeCreatedTemplate(created: TemplateInstance): TemplateInstance {
-  if (isContactVariant(created.variant)) {
-    const p = created.props as any
-  }
-  return created
-}
-
 function addTextTemplate() {
   const def = textComponents[0]
   if (!def) return
@@ -565,9 +571,7 @@ function addGalleryTemplate() {
 function addContactTemplate() {
   const def = contactComponents[0]
   if (!def) return
-  templates.value.push(
-    normalizeCreatedTemplate({ id: crypto.randomUUID(), variant: def.variant, props: def.createDefaultProps() }),
-  )
+  templates.value.push({ id: crypto.randomUUID(), variant: def.variant, props: def.createDefaultProps() })
 }
 
 async function loadPortfolio() {

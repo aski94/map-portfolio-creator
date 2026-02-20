@@ -37,9 +37,9 @@
 
                     <p v-if="p.description" class="desc">{{ p.description }}</p>
 
-                    <ul v-if="p.tags?.length" class="tags">
-                        <li v-for="t in p.tags" :key="t" class="tag">{{ t }}</li>
-                    </ul>
+                    <div v-if="p.tags?.length" class="tags">
+                        <span v-for="t in p.tags" :key="t" class="tag">{{ t }}</span>
+                    </div>
                 </div>
             </article>
         </section>
@@ -243,16 +243,18 @@ const rootStyle = computed(() => ({
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    list-style: none;
-    padding: 0;
     margin: 0.25rem 0 0 0;
 }
 
 .tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 0.25rem 0.55rem;
     border: var(--border-primary);
-    border-radius: 999px;
+    border-radius: 1em;
     opacity: 0.8;
     font-size: 0.9em;
+    line-height: 1;
 }
 </style>
