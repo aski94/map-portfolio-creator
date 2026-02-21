@@ -86,6 +86,7 @@ import { projectComponents } from '@/components/templates/projects'
 import { galleryComponents } from '@/components/templates/gallery'
 import { contactComponents } from '@/components/templates/contact'
 import { exportShowcaseAsHtml, exportShowcaseAsPdf } from '@/utils/export'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
 type Mode = 'general' | 'style' | 'reorder' | 'delete'
 type MobileView = 'showcase' | 'add' | 'style'
@@ -635,7 +636,9 @@ async function loadPortfolio() {
     return
   }
   try {
-    const res = await fetch('http://localhost:3000/portfolio/me', { headers: { Authorization: `Bearer ${t}` } })
+    const res = await fetch(`${API_BASE_URL}/portfolio/me`, {
+      headers: { Authorization: `Bearer ${t}` },
+    })
     const json = await res.json().catch(() => null)
     const data = json?.data
     if (data?.general) Object.assign(general, data.general)
@@ -648,7 +651,7 @@ async function loadPortfolio() {
 async function savePortfolio() {
   const t = token()
   if (!t) return
-  await fetch('http://localhost:3000/portfolio/me', {
+  await fetch(`${API_BASE_URL}/portfolio/me`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
     body: JSON.stringify({ general, templates: templates.value }),
