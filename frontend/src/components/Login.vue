@@ -108,6 +108,8 @@ const showConfirm = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string
+
 function close() {
   emit('close')
 }
@@ -142,15 +144,15 @@ async function submit() {
   if (mode.value === 'signup') {
     loading.value = true
     try {
-      const res = await fetch('http://localhost:3000/auth/signup', {
+      const res = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.value,
           password: password.value,
           firstName: firstName.value,
-          lastName: lastName.value
-        })
+          lastName: lastName.value,
+        }),
       })
 
       if (!res.ok) {
@@ -173,13 +175,13 @@ async function submit() {
 
   loading.value = true
   try {
-    const res = await fetch('http://localhost:3000/auth/login', {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: email.value,
-        password: password.value
-      })
+        password: password.value,
+      }),
     })
 
     const data = await res.json().catch(() => ({}))
