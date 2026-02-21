@@ -41,9 +41,16 @@ onMounted(async () => {
     return
   }
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string
+  if (!API_BASE_URL) {
+    status.value = 'error'
+    errorMessage.value = 'Missing VITE_API_BASE_URL.'
+    return
+  }
+
   try {
     const res = await fetch(
-      `http://localhost:3000/auth/confirm?token=${encodeURIComponent(token)}`,
+      `${API_BASE_URL}/auth/confirm?token=${encodeURIComponent(token)}`
     )
     const data = await res.json().catch(() => ({}))
 
