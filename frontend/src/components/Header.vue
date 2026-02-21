@@ -4,7 +4,6 @@
       <p class="logo">Portfolio</p>
     </section>
     <nav>
-      <button class="button-secondary">Settings</button>
       <button type="button" @click="emit('export')">Export</button>
       <i class="user" @click="onUserClick">
         <User />
