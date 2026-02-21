@@ -3,9 +3,6 @@ import nodemailer from "nodemailer";
 import mjml2html from "mjml";
 import fs from "fs/promises";
 import path from "path";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 @Service()
 export class EmailService {
@@ -25,9 +22,12 @@ export class EmailService {
         confirm_url: string,
     ) {
         const templatePath = path.join(
-            __dirname,
+            process.cwd(),
+            "src",
+            "services",
+            "email",
             "templates",
-            "email.mjml",
+            "email.mjml"
         );
 
         const mjmlTemplate = await fs.readFile(templatePath, "utf8");
@@ -35,7 +35,7 @@ export class EmailService {
         const mjmlWithVars = mjmlTemplate.replace(
             /{{\s*([a-zA-Z0-9_]+)\s*}}/g,
             (_, key) =>
-                ({ first_name, confirm_url } as Record<string, string>)[key] ?? "",
+                ({ first_name, confirm_url } as Record<string, string>)[key] ?? ""
         );
 
         const { html } = mjml2html(mjmlWithVars, {
@@ -43,7 +43,7 @@ export class EmailService {
         });
 
         await this.transporter.sendMail({
-            from: `"Portfolio" <no-reply@example.com>`,
+            from: `"Portfolio" <${process.env.SMTP_USER}>`,
             to,
             subject: "Confirm your account",
             html,
