@@ -1,7 +1,7 @@
 <template>
   <header>
     <section>
-      <p class="logo">Portfolio</p>
+      <p class="logo">Portfable</p>
     </section>
     <nav>
       <button type="button" class="button-secondary" @click="emit('export')">Export</button>
