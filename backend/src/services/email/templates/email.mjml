@@ -154,7 +154,7 @@
     <mj-section padding="10px 8px 22px" css-class="outer-pad">
       <mj-column>
         <mj-text align="center" font-size="12px" line-height="18px" css-class="muted">
-          © 2025 Portfolio
+          © 2025 Portfable
         </mj-text>
       </mj-column>
     </mj-section>
