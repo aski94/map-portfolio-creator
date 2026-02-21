@@ -178,4 +178,24 @@ function select(format: 'html' | 'pdf') {
     height: 1.5em;
     color: var(--color-text-primary);
 }
+
+@media (max-width: 765px) {
+    .small {
+        display: none;
+    }
+
+    p.name {
+        font-size: 0.75em;
+    }
+
+    p.big {
+        font-size: 2em;
+    }
+
+    .modal {
+        margin: 1em;
+        padding-left: 1em;
+        padding-right: 1em;
+    }
+}
 </style>

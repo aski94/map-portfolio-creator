@@ -4,41 +4,70 @@
   <ExportPicker v-if="showExport" @close="showExport = false" @select="onExportSelect" />
 
   <section v-if="ready" class="layout">
-    <AddTemplate @add-text="addTextTemplate" @open="onAddTemplateClick" />
+    <template v-if="!isMobile">
+      <AddTemplate @add-text="addTextTemplate" @open="onAddTemplateClick" />
 
-    <main>
-      <Toolbar :mode="mode" @update:mode="mode = $event" />
+      <main>
+        <Toolbar :mode="mode" @update:mode="mode = $event" />
 
-      <Showcase :general="general" :templates="templates" :styleEnabled="mode === 'style'"
-        :deleteEnabled="mode === 'delete'" :reorderEnabled="mode === 'reorder'" :selectedId="selectedId"
-        @edit="onEditTemplate" @delete="onDeleteTemplate" @move="onMoveTemplate" />
-    </main>
+        <Showcase :general="general" :templates="templates" :styleEnabled="mode === 'style'"
+          :deleteEnabled="mode === 'delete'" :reorderEnabled="mode === 'reorder'" :selectedId="selectedId"
+          @edit="onEditTemplate" @delete="onDeleteTemplate" @move="onMoveTemplate" />
+      </main>
 
-    <TextStyling v-if="mode === 'style' && selectedTemplate && isTextVariant(selectedTemplate.variant)"
-      v-model="selectedTemplateStyle" />
+      <TextStyling v-if="mode === 'style' && selectedTemplate && isTextVariant(selectedTemplate.variant)"
+        v-model="selectedTemplateStyle" />
 
-    <ImageTemplateStyling v-else-if="mode === 'style' && selectedTemplate && isImageVariant(selectedTemplate.variant)"
-      v-model="selectedImageTemplateStyle" />
+      <ImageTemplateStyling v-else-if="mode === 'style' && selectedTemplate && isImageVariant(selectedTemplate.variant)"
+        v-model="selectedImageTemplateStyle" />
 
-    <ProjectsStyling v-else-if="mode === 'style' && selectedTemplate && isProjectVariant(selectedTemplate.variant)"
-      v-model="selectedProjectsTemplateStyle" />
+      <ProjectsStyling v-else-if="mode === 'style' && selectedTemplate && isProjectVariant(selectedTemplate.variant)"
+        v-model="selectedProjectsTemplateStyle" />
 
-    <GalleryStyling v-else-if="mode === 'style' && selectedTemplate && isGalleryVariant(selectedTemplate.variant)"
-      v-model="selectedGalleryTemplateStyle" />
+      <GalleryStyling v-else-if="mode === 'style' && selectedTemplate && isGalleryVariant(selectedTemplate.variant)"
+        v-model="selectedGalleryTemplateStyle" />
 
-    <ContactStyling v-else-if="mode === 'style' && selectedTemplate && isContactVariant(selectedTemplate.variant)"
-      v-model="selectedContactTemplateStyle" />
+      <ContactStyling v-else-if="mode === 'style' && selectedTemplate && isContactVariant(selectedTemplate.variant)"
+        v-model="selectedContactTemplateStyle" />
 
-    <Styling v-else :general="general" @update:general="updateGeneral" />
+      <Styling v-else :general="general" @update:general="updateGeneral" />
+    </template>
+
+    <template v-else>
+      <main class="mobile-main">
+        <MobileToolbar :mode="mode" :view="mobileView" @update:mode="mode = $event" @update:view="onMobileViewChange" />
+
+        <Showcase v-if="mobileView === 'showcase'" :general="general" :templates="templates"
+          :styleEnabled="mode === 'style'" :deleteEnabled="mode === 'delete'" :reorderEnabled="mode === 'reorder'"
+          :selectedId="selectedId" @edit="onMobileEdit" @delete="onDeleteTemplate" @move="onMoveTemplate" />
+
+        <AddTemplate v-else-if="mobileView === 'add'" @add-text="onMobileAddText" @open="onMobileAddTemplate" />
+
+        <template v-else-if="mobileView === 'style'">
+          <TextStyling v-if="selectedTemplate && isTextVariant(selectedTemplate.variant)"
+            v-model="selectedTemplateStyle" />
+          <ImageTemplateStyling v-else-if="selectedTemplate && isImageVariant(selectedTemplate.variant)"
+            v-model="selectedImageTemplateStyle" />
+          <ProjectsStyling v-else-if="selectedTemplate && isProjectVariant(selectedTemplate.variant)"
+            v-model="selectedProjectsTemplateStyle" />
+          <GalleryStyling v-else-if="selectedTemplate && isGalleryVariant(selectedTemplate.variant)"
+            v-model="selectedGalleryTemplateStyle" />
+          <ContactStyling v-else-if="selectedTemplate && isContactVariant(selectedTemplate.variant)"
+            v-model="selectedContactTemplateStyle" />
+          <Styling v-else :general="general" @update:general="updateGeneral" />
+        </template>
+      </main>
+    </template>
   </section>
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, ref, computed, watch } from 'vue'
+import { reactive, onMounted, onUnmounted, ref, computed, watch } from 'vue'
 import Header from '@/components/Header.vue'
 import ExportPicker from '@/components/ExportPicker.vue'
 import AddTemplate from '@/components/AddTemplate.vue'
 import Toolbar from '@/components/Toolbar.vue'
+import MobileToolbar from '@/components/MobileToolbar.vue'
 import Showcase from '@/components/Showcase.vue'
 import Styling from '@/components/GeneralStyling.vue'
 import TextStyling from '@/components/TextStyling.vue'
@@ -59,6 +88,7 @@ import { contactComponents } from '@/components/templates/contact'
 import { exportShowcaseAsHtml, exportShowcaseAsPdf } from '@/utils/export'
 
 type Mode = 'general' | 'style' | 'reorder' | 'delete'
+type MobileView = 'showcase' | 'add' | 'style'
 type TemplateInstance = { id: string; variant: string; props: Record<string, any> }
 
 type TemplateStyle = {
@@ -122,7 +152,7 @@ const defaultProjectsTemplateStyle: ProjectsTemplateStyle = {
 const defaultGalleryTemplateStyle: GalleryTemplateStyle = {
   heading: 'Gallery',
   layout: 'grid',
-  columns: 3,
+  columns: 1,
   gap: 8,
   imageHeight: 200,
   padTop: 0,
@@ -210,8 +240,32 @@ const ready = ref(false)
 const mode = ref<Mode>('general')
 const templates = ref<TemplateInstance[]>([])
 const selectedId = ref('')
-
 const showExport = ref(false)
+
+const isMobile = ref(window.innerWidth < 1000)
+const mobileView = ref<MobileView>('showcase')
+function onResize() { isMobile.value = window.innerWidth < 1000 }
+onUnmounted(() => window.removeEventListener('resize', onResize))
+watch(isMobile, (mobile) => { if (!mobile) mobileView.value = 'showcase' })
+function onMobileViewChange(v: MobileView) {
+  mobileView.value = v
+  if (v === 'add') {
+    selectedId.value = ''
+  }
+}
+function onMobileEdit(id: string) { selectedId.value = id; mode.value = 'style'; mobileView.value = 'style' }
+function onMobileAddText() { addTextTemplate(); mobileView.value = 'showcase' }
+function onMobileAddTemplate(type: string) { onAddTemplateClick(type); mobileView.value = 'showcase' }
+
+watch(isMobile, (mobile) => {
+  if (mobile) {
+    mode.value = 'general'
+    selectedId.value = ''
+    mobileView.value = 'showcase'
+  } else {
+    mobileView.value = 'showcase'
+  }
+})
 
 function onExport() {
   showExport.value = true
@@ -612,7 +666,10 @@ function updateGeneral(v: typeof general) {
 }
 
 watch(templates, () => queueSave(), { deep: true })
-onMounted(() => loadPortfolio())
+onMounted(() => {
+  loadPortfolio()
+  window.addEventListener('resize', onResize)
+})
 </script>
 
 <style scoped lang="scss">
@@ -627,6 +684,13 @@ main {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  width: 100%;
+  height: 100%;
+}
+
+.mobile-main {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
 }

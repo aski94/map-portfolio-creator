@@ -40,7 +40,6 @@ function onClick(type: string) {
 }
 </script>
 
-
 <style scoped lang="scss">
 aside {
   display: flex;
@@ -93,5 +92,24 @@ ul {
   height: 1.5em;
   margin-right: 0.6em;
   color: var(--color-text-primary);
+}
+
+@media (max-width: 1000px) {
+  aside {
+    width: 100%;
+    flex: 1;
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 765px) {
+  aside {
+    padding: 0.75em;
+  }
 }
 </style>

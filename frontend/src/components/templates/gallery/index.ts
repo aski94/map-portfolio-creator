@@ -38,7 +38,7 @@ function defaultItems(): GalleryItem[] {
 
 function defaultStyle() {
     return {
-        columns: 3,
+        columns: 1,
         gap: 8,
         imageHeight: 200,
         padTop: 0,

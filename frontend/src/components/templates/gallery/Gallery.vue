@@ -56,7 +56,7 @@ const s = computed<GalleryStyle>(() => ({
     padRight: props.style?.padRight ?? 0,
     padBottom: props.style?.padBottom ?? 0,
     padLeft: props.style?.padLeft ?? 0,
-    columns: props.style?.columns ?? 3,
+    columns: props.style?.columns ?? 1,
     gap: props.style?.gap ?? 8,
     imageHeight: props.style?.imageHeight ?? 200,
 }))

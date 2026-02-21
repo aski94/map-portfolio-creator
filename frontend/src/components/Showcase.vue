@@ -175,4 +175,22 @@ function getAlign(t: { props: Record<string, any> }): 'left' | 'center' | 'right
 .action.reorder.down {
   top: calc(0.5em + 1.95em);
 }
+
+@media (max-width: 1000px) {
+  .showcase {
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: none;
+    flex: 1;
+  }
+}
+
+@media (max-width: 765px) {
+  .showcase {
+    padding: 0.75em !important;
+  }
+}
 </style>

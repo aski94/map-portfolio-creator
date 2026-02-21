@@ -111,4 +111,12 @@ function signOut() {
   cursor: pointer;
   color: var(--color-text-primary);
 }
+
+@media (max-width: 765px) {
+  .modal {
+    margin: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+}
 </style>

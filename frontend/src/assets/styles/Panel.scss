@@ -82,3 +82,23 @@ input[type='range'] {
     background: #e5e7eb;
     cursor: pointer;
 }
+
+@media (max-width: 1000px) {
+    aside {
+        width: 100%;
+        max-height: unset;
+        flex: 1;
+        margin: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        box-shadow: none;
+        align-self: auto;
+    }
+}
+
+@media (max-width: 765px) {
+    aside {
+        padding: 0.75em;
+    }
+}
