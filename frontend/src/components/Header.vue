@@ -4,7 +4,7 @@
       <p class="logo">Portfable</p>
     </section>
     <nav>
-      <button type="button" class="button-secondary" @click="emit('export')">Export</button>
+      <button type="button" @click="emit('export')">Export</button>
       <i class="user" @click="onUserClick">
         <User />
       </i>
