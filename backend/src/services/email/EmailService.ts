@@ -38,7 +38,7 @@ export class EmailService {
 
         const { html } = mjml2html(mjmlWithVars, { validationLevel: "soft" });
 
-        const from = process.env.DEFAULT_FROM || "Portfable <onboarding@resend.dev>";
+        const from = process.env.DEFAULT_FROM || "Portfable <no-reply@portfable.xyz>";
 
         await this.resend.emails.send({
             from,
