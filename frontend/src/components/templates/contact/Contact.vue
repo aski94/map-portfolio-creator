@@ -249,13 +249,13 @@ const hasSkillFields = computed(() => props.showSpecialization || props.showSkil
 }
 
 .intro {
-    display: flex;
-    gap: 1.25rem;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--photo-size);
+    column-gap: 1.25rem;
+    align-items: start;
 }
 
 .intro-main {
-    flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -263,9 +263,8 @@ const hasSkillFields = computed(() => props.showSpecialization || props.showSkil
 }
 
 .photo-col {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: flex-start;
+    justify-self: end;
+    align-self: start;
 }
 
 .photo-wrap {
@@ -439,9 +438,14 @@ const hasSkillFields = computed(() => props.showSpecialization || props.showSkil
     font-weight: 600;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 460px) {
     .intro {
-        flex-direction: column;
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: 1rem;
+    }
+
+    .photo-col {
+        justify-self: start;
     }
 
     .photo-wrap {
