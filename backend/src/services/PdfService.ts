@@ -4,6 +4,35 @@ import chromium from '@sparticuz/chromium'
 
 const router = Router()
 
+let browserPromise: Promise<Browser> | undefined
+let lastUsedAt = Date.now()
+
+async function getBrowser() {
+    lastUsedAt = Date.now()
+    if (!browserPromise) {
+        browserPromise = puppeteer.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+            headless: true,
+        })
+    }
+    return browserPromise
+}
+
+async function closeBrowserIfIdle() {
+    if (!browserPromise) return
+    if (Date.now() - lastUsedAt < 60_000) return
+    try {
+        const b = await browserPromise
+        await b.close()
+    } catch { }
+    browserPromise = undefined
+}
+
+setInterval(() => {
+    closeBrowserIfIdle().catch(() => { })
+}, 30_000).unref()
+
 router.post('/pdf', async (req: Request, res: Response) => {
     const { html } = req.body as { html?: string }
     if (!html || typeof html !== 'string') {
@@ -15,19 +44,14 @@ router.post('/pdf', async (req: Request, res: Response) => {
     let page: Page | undefined
 
     try {
-        browser = await puppeteer.launch({
-            args: chromium.args,
-            executablePath: await chromium.executablePath(),
-            headless: true,
-        })
-
+        browser = await getBrowser()
         page = await browser.newPage()
 
         await page.setContent(html, { waitUntil: 'domcontentloaded' })
 
         await Promise.race([
-            page.evaluate(() => (document as any).fonts?.ready),
-            new Promise((r) => setTimeout(r, 2000)),
+            page.evaluate(() => (document as any).fonts?.ready).catch(() => null),
+            new Promise((r) => setTimeout(r, 250)),
         ])
 
         const pdf = await page.pdf({
@@ -45,7 +69,7 @@ router.post('/pdf', async (req: Request, res: Response) => {
         res.status(500).json({ error: 'PDF generation failed', detail: message })
     } finally {
         await page?.close().catch(() => { })
-        await browser?.close().catch(() => { })
+        lastUsedAt = Date.now()
     }
 })
 
