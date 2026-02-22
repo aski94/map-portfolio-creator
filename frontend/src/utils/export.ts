@@ -1,10 +1,9 @@
 export function exportShowcaseAsHtml(showcaseEl: HTMLElement, filename = 'portfolio.html') {
-    const html = buildExportHtml(showcaseEl)
-    downloadText(html, filename, 'text/html')
+    buildExportHtml(showcaseEl).then((html) => downloadText(html, filename, 'text/html'))
 }
 
 export async function exportShowcaseAsPdf(showcaseEl: HTMLElement, filename = 'portfolio.pdf') {
-    const html = buildExportHtml(showcaseEl)
+    const html = await buildExportHtml(showcaseEl)
 
     const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/pdf`, {
         method: 'POST',
@@ -25,12 +24,12 @@ export async function exportShowcaseAsPdf(showcaseEl: HTMLElement, filename = 'p
     URL.revokeObjectURL(url)
 }
 
-function buildExportHtml(showcaseEl: HTMLElement) {
+async function buildExportHtml(showcaseEl: HTMLElement) {
     const clone = showcaseEl.cloneNode(true) as HTMLElement
     sanitizeClone(clone)
 
     const rootVars = extractCssVariables()
-    const inlineStyles = collectInlineStyles()
+    const allStyles = await collectAllStyles()
 
     return `<!doctype html>
 <html lang="en">
@@ -40,9 +39,9 @@ function buildExportHtml(showcaseEl: HTMLElement) {
 <title>Portfolio</title>
 <style>
 :root { ${rootVars} }
-${inlineStyles}
-body { margin: 0; display: flex; justify-content: center; }
-.showcase { width: 100%; max-width: 980px; box-shadow: 0 4px 32px rgba(0,0,0,0.10); border-radius: 12px; background: #fff; }
+${allStyles}
+body { margin: 0; padding: 18px; }
+.showcase { width: 100%; max-width: 980px; margin: 0 auto; background: #fff; }
 .action, .reorder { display: none !important; }
 img { max-width: 100%; }
 .template { break-inside: avoid; page-break-inside: avoid; }
@@ -88,12 +87,28 @@ function extractCssVariables(): string {
     return vars.join('\n  ')
 }
 
-function collectInlineStyles(): string {
+async function collectAllStyles(): Promise<string> {
     const parts: string[] = []
+
+    // inline <style> tags (present in dev, sometimes in prod)
     document.querySelectorAll('style').forEach((s) => {
         const txt = s.textContent ?? ''
         if (txt.trim()) parts.push(txt)
     })
+
+    // fetch external <link rel="stylesheet"> files (Vite bundles CSS here in prod)
+    const fetches = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'))
+        .map(async (link) => {
+            try {
+                const res = await fetch(link.href)
+                if (res.ok) return await res.text()
+            } catch { }
+            return ''
+        })
+
+    const fetched = await Promise.all(fetches)
+    fetched.forEach((txt) => { if (txt.trim()) parts.push(txt) })
+
     return parts.join('\n')
 }
 
