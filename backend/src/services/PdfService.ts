@@ -1,8 +1,29 @@
 import { Router, Request, Response } from 'express'
-import puppeteer from 'puppeteer-core'
+import puppeteer, { type Browser, type Page } from 'puppeteer-core'
 import chromium from '@sparticuz/chromium'
 
 const router = Router()
+
+let browserPromise: Promise<Browser> | null = null
+
+async function getBrowser() {
+    if (!browserPromise) {
+        browserPromise = puppeteer.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+            headless: true,
+        }) as Promise<Browser>
+
+        browserPromise.then((b) => {
+            b.on('disconnected', () => {
+                browserPromise = null
+            })
+        }).catch(() => {
+            browserPromise = null
+        })
+    }
+    return browserPromise
+}
 
 router.post('/pdf', async (req: Request, res: Response) => {
     const { html } = req.body as { html?: string }
@@ -11,17 +32,12 @@ router.post('/pdf', async (req: Request, res: Response) => {
         return
     }
 
-    let browser
-    try {
-        browser = await puppeteer.launch({
-            args: chromium.args,
-            executablePath: await chromium.executablePath(),
-            headless: true,
-        })
+    let page: Page | null = null
 
-        const page = await browser.newPage()
-        await page.setContent(html, { waitUntil: 'networkidle0' })
-        await page.evaluateHandle('document.fonts.ready')
+    try {
+        const browser = await getBrowser()
+        page = await browser.newPage()
+        await page.setContent(html, { waitUntil: 'domcontentloaded' })
 
         const pdf = await page.pdf({
             format: 'A4',
@@ -37,7 +53,7 @@ router.post('/pdf', async (req: Request, res: Response) => {
         console.error('[PdfService]', message)
         res.status(500).json({ error: 'PDF generation failed', detail: message })
     } finally {
-        await browser?.close()
+        await page?.close().catch(() => { })
     }
 })
 
