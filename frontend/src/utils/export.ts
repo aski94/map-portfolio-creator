@@ -40,8 +40,8 @@ async function buildExportHtml(showcaseEl: HTMLElement) {
 <style>
 :root { ${rootVars} }
 ${allStyles}
-body { margin: 0; padding: 18px; }
-.showcase { width: 100%; max-width: 980px; margin: 0 auto; background: #fff; }
+body { margin: 0; padding: 18px; display: flex; justify-content: center; }
+.showcase { width: 100%; max-width: 980px; background: #fff; }
 .action, .reorder { display: none !important; }
 img { max-width: 100%; }
 .template { break-inside: avoid; page-break-inside: avoid; }
@@ -54,6 +54,7 @@ ${clone.outerHTML}
 }
 
 function sanitizeClone(root: HTMLElement) {
+    root.classList.add('showcase')
     root.querySelectorAll('.action,.reorder').forEach((n) => n.remove())
     root.querySelectorAll('.template.selected').forEach((n) => n.classList.remove('selected'))
     root.style.cssText += ';overflow:visible;box-shadow:none;border:none;margin:0;border-radius:0;padding-top:0;padding-bottom:0;'
@@ -90,13 +91,11 @@ function extractCssVariables(): string {
 async function collectAllStyles(): Promise<string> {
     const parts: string[] = []
 
-    // inline <style> tags (present in dev, sometimes in prod)
     document.querySelectorAll('style').forEach((s) => {
         const txt = s.textContent ?? ''
         if (txt.trim()) parts.push(txt)
     })
 
-    // fetch external <link rel="stylesheet"> files (Vite bundles CSS here in prod)
     const fetches = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'))
         .map(async (link) => {
             try {
