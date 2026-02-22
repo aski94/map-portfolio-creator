@@ -15,7 +15,6 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "html2pdf.js": "^0.14.0",
     "lucide-vue-next": "^0.552.0",
     "pinia": "^3.0.3",
     "sass": "^1.97.1",
