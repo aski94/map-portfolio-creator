@@ -254,7 +254,7 @@ async function submit() {
 
 .brand-name {
   font-weight: 800;
-  font-size: 1.75rem;
+  font-size: 2rem;
   color: var(--color-text-secondary);
 }
 
