@@ -1,6 +1,10 @@
 <template>
   <div class="overlay" @click.self="close">
     <section class="modal">
+      <div class="brand">
+        <p class="brand-name">Portfable</p>
+      </div>
+
       <template v-if="step === 'form'">
         <p class="title">
           {{ mode === 'login' ? 'Login' : 'Sign up' }}
@@ -68,7 +72,7 @@
 
         <div class="confirm">
           <p class="confirm-text">
-            We’ve sent a confirmation email to
+            We've sent a confirmation email to
           </p>
 
           <p class="confirm-email">
@@ -222,6 +226,8 @@ async function submit() {
   border-radius: var(--border-radius-secondary);
   box-shadow: var(--box-shadow-secondary);
   position: relative;
+  overflow: hidden;
+  padding-top: 0;
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -235,6 +241,21 @@ async function submit() {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+.brand {
+  background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
+  margin: 0 -2em;
+  padding: 0.85em 2em;
+  margin-bottom: 1.5em;
+  display: flex;
+  justify-content: center;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 1.75rem;
+  color: var(--color-text-secondary);
 }
 
 .title {
@@ -359,5 +380,13 @@ input {
   font-weight: 800;
   color: var(--color-primary);
   word-break: break-word;
+}
+
+@media (max-width: 765px) {
+  .modal {
+    margin: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
 }
 </style>
