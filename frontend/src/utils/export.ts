@@ -47,7 +47,7 @@ img { max-width: 100%; }
 .template { break-inside: avoid; page-break-inside: avoid; }
 </style>
 </head>
-<body>
+<body style="margin:0;padding:18px;display:flex;justify-content:center;">
 ${clone.outerHTML}
 </body>
 </html>`
