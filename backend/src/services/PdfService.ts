@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express'
-import puppeteer from 'puppeteer'
+import puppeteer from 'puppeteer-core'
+import chromium from '@sparticuz/chromium'
 
 const router = Router()
 
@@ -13,8 +14,9 @@ router.post('/pdf', async (req: Request, res: Response) => {
     let browser
     try {
         browser = await puppeteer.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
         })
 
         const page = await browser.newPage()
@@ -31,8 +33,9 @@ router.post('/pdf', async (req: Request, res: Response) => {
         res.setHeader('Content-Disposition', 'attachment; filename="portfolio.pdf"')
         res.send(pdf)
     } catch (err) {
-        console.error('PDF generation failed:', err)
-        res.status(500).json({ error: 'PDF generation failed' })
+        const message = err instanceof Error ? err.message : String(err)
+        console.error('[PdfService]', message)
+        res.status(500).json({ error: 'PDF generation failed', detail: message })
     } finally {
         await browser?.close()
     }
