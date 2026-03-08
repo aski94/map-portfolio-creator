@@ -1,3 +1,4 @@
+```vue
 <template>
     <div class="overlay" @click.self="close">
         <section class="modal">
@@ -9,8 +10,8 @@
             <section class="grid">
                 <section class="card" @click="select('html')">
                     <div class="preview">
-                        <p class="big">HTML</p>
-                        <p class="small">For sharing and hosting</p>
+                        <p class="format">HTML</p>
+                        <p class="description">For sharing and hosting</p>
                     </div>
 
                     <div class="bottom">
@@ -23,8 +24,8 @@
 
                 <section class="card" @click="select('pdf')">
                     <div class="preview">
-                        <p class="big">PDF</p>
-                        <p class="small">For resumes and email</p>
+                        <p class="format">PDF</p>
+                        <p class="description">For resumes and email</p>
                     </div>
 
                     <div class="bottom">
@@ -143,14 +144,14 @@ function select(format: 'html' | 'pdf') {
     gap: 0.35em;
 }
 
-.big {
+.format {
     margin: 0;
     font-weight: 900;
     font-size: 2.4rem;
     color: #111111;
 }
 
-.small {
+.description {
     margin: 0;
     font-weight: 600;
     opacity: 0.7;
@@ -180,7 +181,7 @@ function select(format: 'html' | 'pdf') {
 }
 
 @media (max-width: 765px) {
-    .small {
+    .description {
         display: none;
     }
 
@@ -188,7 +189,7 @@ function select(format: 'html' | 'pdf') {
         font-size: 0.75em;
     }
 
-    p.big {
+    p.format {
         font-size: 2em;
     }
 
@@ -199,3 +200,4 @@ function select(format: 'html' | 'pdf') {
     }
 }
 </style>
+```
