@@ -60,7 +60,7 @@
         <input id="headingColor" class="color" type="color" v-model="local.heading" />
       </div>
 
-      <div class="field">
+      <!-- <div class="field">
         <label for="accentColor">Accent color</label>
         <input id="accentColor" class="color" type="color" v-model="local.accent" />
       </div>
@@ -68,7 +68,7 @@
       <div class="field">
         <label for="bgColor">Background</label>
         <input id="bgColor" class="color" type="color" v-model="local.bg" />
-      </div>
+      </div> -->
     </form>
   </aside>
 </template>
